@@ -1,0 +1,25 @@
+[
+  {
+    "context": "Editor && VimControl && !VimWaiting && !menu",
+    "bindings": {
+      "g c": "editor::ToggleComments",
+      "shift-l": "vim::EndOfLine",
+      "shift-h": "vim::StartOfLine",
+      "shift-c": "vim::JoinLines",
+      "shift-s": "workspace::Save"
+    }
+  },
+  {
+    "bindings": {
+      "tab": "menu::SelectFirst",
+      "shift-tab": "menu::SelectPrev",
+      "enter": "editor::ConfirmCompletion"
+    }
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "cmd-shift-x": "workspace::ToggleTerminalFocus"
+    }
+  }
+]
