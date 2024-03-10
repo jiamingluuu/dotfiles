@@ -7,8 +7,8 @@ opt.guifont = { "MesloLGLDZ NFM", "h12" }
 opt.number = true
 
 -- tabs and indentation
-opt.tabstop = 4
-opt.shiftwidth = 4
+opt.tabstop = 2
+opt.shiftwidth = 2
 opt.so = 8
 opt.expandtab = true
 
