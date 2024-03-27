@@ -2,9 +2,10 @@
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 -- Add any additional options here
 local opt = vim.opt -- for conciseness
-opt.guifont = { "MesloLGLDZ NFM", "h12" }
+opt.guifont = { "MesloLGMDZ Nerd Font", "h12" }
 -- line numbers
 opt.number = true
+opt.relativenumber = false
 
 -- tabs and indentation
 opt.tabstop = 2
@@ -20,7 +21,7 @@ opt.ignorecase = true
 opt.smartcase = true
 
 -- cursor line
--- opt.cursorline = true
+opt.cursorline = true
 
 -- appearance
 opt.termguicolors = true
@@ -32,7 +33,7 @@ opt.colorcolumn = "80"
 opt.backspace = "indent,eol,start"
 
 -- clipboard
-opt.clipboard:append("unnamedplus")
+opt.clipboard = "unnamedplus"
 
 -- split windos
 opt.splitright = true
