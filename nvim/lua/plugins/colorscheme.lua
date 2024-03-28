@@ -3,6 +3,7 @@ return {
   {
     "catppuccin/nvim",
     name = "catppuccin",
+    priority = 1000,
     opts = {
       term_colors = true,
       transparent_background = false,
@@ -13,27 +14,32 @@ return {
         functions = {},
         keywords = {},
         strings = {},
-        variables = {},
+        variables = { "italic" },
         numbers = {},
-        booleans = {},
+        booleans = { "italic" },
         properties = {},
         types = {},
       },
       color_overrides = {
+        all = {
+          text = "#ffffff",
+        },
         mocha = {
           base = "#0f0f0f",
-          mantle = "#000000",
-          crust = "#000000",
         },
+        frappe = {},
+        macchiato = {},
+        latte = {},
       },
       integrations = {
-        telescope = {
+        cmp = true,
+        gitsigns = true,
+        nvimtree = true,
+        treesitter = true,
+        notify = false,
+        mini = {
           enabled = true,
-          style = "nvchad",
-        },
-        dropbar = {
-          enabled = true,
-          color_mode = true,
+          indentscope_color = "",
         },
       },
     },
