@@ -7,9 +7,6 @@ opt.guifont = { "MesloLGMDZ Nerd Font", "h12" }
 opt.number = true
 opt.relativenumber = false
 
--- tabs and indentation
-opt.tabstop = 2
-opt.shiftwidth = 2
 opt.so = 8
 opt.expandtab = true
 
@@ -28,9 +25,6 @@ opt.termguicolors = true
 opt.background = "dark"
 opt.signcolumn = "yes"
 opt.colorcolumn = "80"
-
--- backspace
-opt.backspace = "indent,eol,start"
 
 -- clipboard
 opt.clipboard = "unnamedplus"

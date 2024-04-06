@@ -112,6 +112,7 @@ alias jo=joshuto
 alias ls=exa
 alias less=bat
 alias y=yazi
+alias weather="curl wttr.in"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
