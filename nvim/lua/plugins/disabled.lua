@@ -6,5 +6,5 @@ return {
   { "folke/noice.nvim", enabled = false },
   { "nvim-telescope/telescope-fzf-native.nvim", enabled = false },
   { "folke/flash.nvim", enabled = false },
-  { "echasnovski/mini.pairs", enabled = false },
+  -- { "echasnovski/mini.pairs", enabled = false },
 }

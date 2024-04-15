@@ -9,11 +9,11 @@ custom.tab_bar.new_tab.bg_color = "#080808"
 return {
 	font = wezterm.font("MesloLGMDZ Nerd Font"),
 	font_size = 12,
-	-- color_scheme = "Gruvbox dark, hard (base16)",
-	color_schemes = {
-		["OLEDppuccin"] = custom,
-	},
-	color_scheme = "OLEDppuccin",
+	color_scheme = "Gruvbox dark, hard (base16)",
+	-- color_schemes = {
+	-- 	["OLEDppuccin"] = custom,
+	-- },
+	-- color_scheme = "OLEDppuccin",
 	window_decorations = "RESIZE",
 	window_frame = {
 		font_size = 9,
