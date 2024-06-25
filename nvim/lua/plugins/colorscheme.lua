@@ -1,5 +1,18 @@
 return {
-  { "ellisonleao/gruvbox.nvim" },
+  {
+    "ellisonleao/gruvbox.nvim",
+    opts = {
+      styles = {
+        comments = { "italic" },
+        variables = { "italic" },
+        booleans = { "italic" },
+        functions = { "italic" },
+      },
+      color_overrides = {
+        functions = { "#f1bf4f" },
+      },
+    },
+  },
   {
     "catppuccin/nvim",
     name = "catppuccin",
@@ -47,7 +60,9 @@ return {
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "catppuccin-mocha",
+      colorscheme = "gruvbox",
+      -- colorscheme = "catppuccin",
+      -- colorscheme = "vscode",
     },
   },
 }

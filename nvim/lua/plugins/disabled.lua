@@ -5,4 +5,5 @@ return {
   { "stevearc/dressing.nvim", enabled = false },
   { "folke/noice.nvim", enabled = false },
   { "nvim-telescope/telescope-fzf-native.nvim", enabled = false },
+  { "folke/flash.nvim", enabled = false },
 }
