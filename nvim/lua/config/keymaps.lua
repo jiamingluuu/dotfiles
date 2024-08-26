@@ -4,8 +4,8 @@
 local map = vim.keymap.set
 
 map("n", "H", "0")
-map("n", "J", "5j")
-map("n", "K", "5k")
+-- map("n", "J", "5j")
+-- map("n", "K", "5k")
 map("n", "L", "$")
 map("n", "C", "J")
 

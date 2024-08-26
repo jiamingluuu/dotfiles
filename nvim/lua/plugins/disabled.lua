@@ -6,4 +6,6 @@ return {
   { "folke/noice.nvim", enabled = false },
   { "nvim-telescope/telescope-fzf-native.nvim", enabled = false },
   { "folke/flash.nvim", enabled = false },
+  { "hrsh7th/cmp-buffer", enabled = false },
+  { "lukas-reineke/headlines.nvim", enabled = false },
 }
