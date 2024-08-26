@@ -2,7 +2,7 @@
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 -- Add any additional options here
 local opt = vim.opt -- for conciseness
-opt.guifont = { "MesloLGMDZ Nerd Font", "h12" }
+opt.guifont = { "MesloLGLDZ NFM", "h12" }
 -- line numbers
 opt.number = true
 opt.relativenumber = false

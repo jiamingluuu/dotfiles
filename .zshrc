@@ -103,16 +103,17 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias c="cd ~/Documents/code/"
+# alias c="cd ~/Documents/code/"
 alias vi=nvim
-alias u="cd ~/Documents/notes/uoft/"
-alias r="cd ~/Documents/code/learn-rust"
-alias h="cd ~"
+# alias u="cd ~/Documents/notes/uoft/"
+# alias r="cd ~/Documents/code/learn-rust"
+# alias h="cd ~"
 alias jo=joshuto
-alias ls=exa
+alias ls=eza
 alias less=bat
 alias y=yazi
 alias weather="curl wttr.in"
+alias goreman="/home/jiaming/go/bin/goreman"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -167,3 +168,6 @@ _fzf_comprun() {
 }
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# opam configuration
+[[ ! -r /Users/lujiaming15/.opam/opam-init/init.zsh ]] || source /Users/lujiaming15/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null

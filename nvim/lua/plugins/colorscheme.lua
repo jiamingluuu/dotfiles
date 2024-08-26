@@ -50,7 +50,7 @@ return {
     opts = {
       -- colorscheme = "gruvbox",
       -- colorscheme = "catppuccin",
-      colorscheme = "vscode",
+      colorscheme = "gruvbox",
     },
   },
 }
