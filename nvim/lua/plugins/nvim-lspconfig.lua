@@ -1,16 +1,17 @@
 return {
   "neovim/nvim-lspconfig",
   opts = {
-    servers = {
-      pylsp = {
-        settings = {
-          pylsp = {
-            plugins = {
-              pyflakes = { enabled = false },
-            },
-          },
-        },
-      },
-    },
+    inlay_hints = { enabled = false },
+    -- servers = {
+    --   pylsp = {
+    --     settings = {
+    --       pylsp = {
+    --         plugins = {
+    --           pyflakes = { enabled = false },
+    --         },
+    --       },
+    --     },
+    --   },
+    -- },
   },
 }

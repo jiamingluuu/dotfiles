@@ -1,6 +1,19 @@
 return {
-  { "ellisonleao/gruvbox.nvim" },
   { "Mofiqul/vscode.nvim" },
+  {
+    "ellisonleao/gruvbox.nvim",
+    opts = {
+      styles = {
+        comments = { "italic" },
+        variables = { "italic" },
+        booleans = { "italic" },
+        functions = { "italic" },
+      },
+      color_overrides = {
+        functions = { "#f1bf4f" },
+      },
+    },
+  },
   {
     "catppuccin/nvim",
     name = "catppuccin",
@@ -10,28 +23,16 @@ return {
       transparent_background = false,
       styles = {
         comments = { "italic" },
-        conditionals = {},
-        loops = {},
-        functions = {},
-        keywords = {},
-        strings = {},
         variables = { "italic" },
-        numbers = {},
         booleans = { "italic" },
-        properties = {},
-        types = {},
       },
       color_overrides = {
-        all = {
-          text = "#ffffff",
-        },
-        mocha = {
-          base = "#0f0f0f",
-        },
-        frappe = {},
-        macchiato = {},
-        latte = {},
-      },
+				mocha = {
+					base = "#000000",
+					mantle = "#000000",
+					crust = "#000000",
+				},
+			},
       integrations = {
         cmp = true,
         gitsigns = true,
@@ -44,13 +45,14 @@ return {
         },
       },
     },
-  },
+   },
+  { "sainnhe/gruvbox-material", },
   {
     "LazyVim/LazyVim",
     opts = {
-      -- colorscheme = "gruvbox",
+      colorscheme = "gruvbox-material",
       -- colorscheme = "catppuccin",
-      colorscheme = "gruvbox",
+      -- colorscheme = "vscode",
     },
   },
 }

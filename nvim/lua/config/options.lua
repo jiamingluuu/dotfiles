@@ -8,6 +8,10 @@ opt.number = true
 opt.relativenumber = false
 
 opt.so = 8
+-- opt.tabstop = 4 -- A TAB character looks like 4 spaces
+-- opt.expandtab = true -- Pressing the TAB key will insert spaces instead of a TAB character
+-- opt.softtabstop = 4 -- Number of spaces inserted instead of a TAB character
+-- opt.shiftwidth = 4 -- Number of spaces inserted when indenting
 opt.expandtab = true
 
 -- line wrapping
@@ -24,7 +28,7 @@ opt.cursorline = true
 opt.termguicolors = true
 opt.background = "dark"
 opt.signcolumn = "yes"
-opt.colorcolumn = "80"
+opt.colorcolumn = "80,120"
 
 -- clipboard
 opt.clipboard = "unnamedplus"
@@ -40,3 +44,4 @@ opt.iskeyword:append("-")
 -- codes auto-folded after downloading nvim-treesitter, so the following is added
 opt.foldlevel = 999
 opt.laststatus = 0
+

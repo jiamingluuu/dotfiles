@@ -105,9 +105,9 @@ fi
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 # alias c="cd ~/Documents/code/"
 alias vi=nvim
-# alias u="cd ~/Documents/notes/uoft/"
-# alias r="cd ~/Documents/code/learn-rust"
-# alias h="cd ~"
+alias u="cd ~/Documents/uoft-notes/uoft/"
+alias r="cd ~/Documents/code/learn-rust"
+alias h="cd ~"
 alias jo=joshuto
 alias ls=eza
 alias less=bat
