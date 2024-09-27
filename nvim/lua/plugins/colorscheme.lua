@@ -34,16 +34,12 @@ return {
         types = {},
       },
       color_overrides = {
-        all = {
-          text = "#ffffff",
-        },
-        mocha = {
-          base = "#0f0f0f",
-        },
-        frappe = {},
-        macchiato = {},
-        latte = {},
-      },
+				mocha = {
+					base = "#111111",
+					mantle = "#161616",
+					crust = "#181818",
+				},
+			},
       integrations = {
         cmp = true,
         gitsigns = true,
@@ -60,8 +56,8 @@ return {
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "gruvbox",
-      -- colorscheme = "catppuccin",
+      -- colorscheme = "gruvbox",
+      colorscheme = "catppuccin",
       -- colorscheme = "vscode",
     },
   },
