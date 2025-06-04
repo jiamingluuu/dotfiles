@@ -6,12 +6,8 @@ custom.tab_bar.inactive_tab.bg_color = "#0f0f0f"
 custom.tab_bar.new_tab.bg_color = "#080808"
 
 return {
-	-- color_scheme = "Gruvbox Dark (Gogh)",
-	font = wezterm.font("MesloLGLDZ NFM"),
-	font_size = 14,
-  color_schemes = {
-    ["OLEDppuccin"] = custom,
-  },
-  color_scheme = "OLEDppuccin",
+	color_scheme = "Gruvbox Dark (Gogh)",
+	font = wezterm.font("MesloLGLDZ Nerd Font Mono"),
+	font_size = 16,
 	window_decorations = "RESIZE",
 }

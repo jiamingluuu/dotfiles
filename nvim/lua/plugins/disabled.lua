@@ -7,5 +7,6 @@ return {
   { "nvim-telescope/telescope-fzf-native.nvim", enabled = false },
   { "folke/flash.nvim", enabled = false },
   { "hrsh7th/cmp-buffer", enabled = false },
+  { "echasnovski/mini.animate", enabled = false }
   -- { "MeanderingProgrammer/render-markdown.nvim", enabled = false },
 }

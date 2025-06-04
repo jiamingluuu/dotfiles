@@ -53,12 +53,14 @@ return {
       },
     },
   },
+  { "projekt0n/github-nvim-theme" },
   {
     "LazyVim/LazyVim",
     opts = {
       -- colorscheme = "gruvbox",
-      colorscheme = "catppuccin",
+      -- colorscheme = "catppuccin",
       -- colorscheme = "vscode",
+      colorscheme = "github_dark_default",
     },
   },
 }

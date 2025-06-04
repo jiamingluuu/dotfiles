@@ -48,3 +48,4 @@ opt.iskeyword:append("-")
 -- codes auto-folded after downloading nvim-treesitter, so the following is added
 opt.foldlevel = 999
 opt.laststatus = 0
+vim.g.snacks_animate = false
