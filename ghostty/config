@@ -1,0 +1,11 @@
+font-family = "MesloLGLDZ NFM"
+font-size = 14
+theme = GruvboxDark
+
+
+window-height = 99999
+window-width = 99999
+
+shell-integration-features = no-cursor
+cursor-style = block
+cursor-style-blink = false
