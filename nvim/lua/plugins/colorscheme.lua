@@ -2,63 +2,24 @@ return {
   {
     "ellisonleao/gruvbox.nvim",
     opts = {
-      styles = {
-        comments = { "italic" },
-        variables = { "italic" },
-        booleans = { "italic" },
-        functions = { "italic" },
-      },
-      color_overrides = {
-        functions = { "#f1bf4f" },
-      },
+      bold = false,
     },
   },
+  { "rebelot/kanagawa.nvim" },
+  { "Mofiqul/vscode.nvim" },
+  { "sainnhe/everforest" },
   {
-    "catppuccin/nvim",
-    name = "catppuccin",
-    priority = 1000,
-    opts = {
-      term_colors = true,
-      transparent_background = false,
-      styles = {
-        comments = { "italic" },
-        conditionals = {},
-        loops = {},
-        functions = {},
-        keywords = {},
-        strings = {},
-        variables = { "italic" },
-        numbers = {},
-        booleans = { "italic" },
-        properties = {},
-        types = {},
-      },
-      color_overrides = {
-				mocha = {
-					base = "#111111",
-					mantle = "#161616",
-					crust = "#181818",
-				},
-			},
-      integrations = {
-        cmp = true,
-        gitsigns = true,
-        nvimtree = true,
-        treesitter = true,
-        notify = false,
-        mini = {
-          enabled = true,
-          indentscope_color = "",
-        },
-      },
-    },
+    "projekt0n/github-nvim-theme",
   },
   {
     "LazyVim/LazyVim",
     opts = {
       -- colorscheme = "gruvbox",
+      -- colorscheme = "github_light",
       colorscheme = "catppuccin",
+      -- colorscheme = "nordic",
       -- colorscheme = "vscode",
+      -- colorscheme = "kanagawa",
     },
   },
 }

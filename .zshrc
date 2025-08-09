@@ -105,13 +105,11 @@ fi
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 # alias c="cd ~/Documents/code/"
 alias vi=nvim
-alias u="cd ~/Documents/uoft-notes/uoft/"
-alias r="cd ~/Documents/code/learn-rust"
-alias h="cd ~"
 alias jo=joshuto
 alias ls=eza
 alias less=bat
 alias y=yazi
+alias lg='lazygit'
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -167,5 +165,14 @@ _fzf_comprun() {
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# opam configuration
-[[ ! -r /Users/lujiaming15/.opam/opam-init/init.zsh ]] || source /Users/lujiaming15/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
+export CC=/opt/homebrew/opt/llvm/bin/clang
+export CXX=/opt/homebrew/opt/llvm/bin/clang++
+
+
+# BEGIN opam configuration
+# This is useful if you're using opam as it adds:
+#   - the correct directories to the PATH
+#   - auto-completion for the opam binary
+# This section can be safely removed at any time if needed.
+[[ ! -r '/Users/q/.opam/opam-init/init.zsh' ]] || source '/Users/q/.opam/opam-init/init.zsh' > /dev/null 2> /dev/null
+# END opam configuration

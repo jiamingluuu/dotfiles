@@ -31,11 +31,9 @@ opt.background = "dark"
 opt.signcolumn = "yes"
 opt.colorcolumn = "80,120"
 
--- backspace
 opt.backspace = "indent,eol,start"
 
--- clipboard
-opt.clipboard = "unnamedplus"
+opt.clipboard:append("unnamedplus")
 
 -- split windos
 opt.splitright = true
@@ -45,6 +43,7 @@ opt.conceallevel = 0
 
 opt.iskeyword:append("-")
 
--- codes auto-folded after downloading nvim-treesitter, so the following is added
 opt.foldlevel = 999
 opt.laststatus = 0
+
+vim.g.autoformat = false
