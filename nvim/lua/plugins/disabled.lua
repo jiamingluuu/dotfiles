@@ -2,6 +2,7 @@ return {
   -- { "nvim-lualine/lualine.nvim", enabled = false },
   -- { "rcarriga/nvim-notify", enabled = false },
   { "nvimdev/dashboard-nvim", enabled = false },
+  { "echasnovski/mini.pairs", enabled = false },
   -- { "stevearc/dressing.nvim", enabled = false },
   { "folke/noice.nvim", enabled = false },
   { "nvim-telescope/telescope-fzf-native.nvim", enabled = false },
@@ -9,8 +10,9 @@ return {
   { "hrsh7th/cmp-buffer", enabled = false },
   { "echasnovski/mini.comment", enabled = false },
   -- { "echasnovski/mini.pairs", enabled = false },
+  { "echasnovski/mini.animate", enabled = false },
   opts = {
     scroll = { enabled = false },
-  }
+  },
   -- { "MeanderingProgrammer/render-markdown.nvim", enabled = false },
 }

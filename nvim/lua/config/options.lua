@@ -45,5 +45,5 @@ opt.iskeyword:append("-")
 
 opt.foldlevel = 999
 opt.laststatus = 0
-
 vim.g.autoformat = false
+vim.g.snacks_animate = false
