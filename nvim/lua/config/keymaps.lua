@@ -1,49 +1,39 @@
-local map = vim.keymap.set
+vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
-map("n", "H", "0")
--- map("n", "J", "5j")
--- map("n", "K", "5k")
-map("n", "L", "$")
-map("n", "C", "J")
+vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+vim.keymap.set('n', 'sh', '<cmd>split<CR>')
+vim.keymap.set('n', 'sv', '<cmd>vsplit<CR>')
+vim.keymap.set('n', 'L', '$')
+vim.keymap.set('n', 'H', '0')
 
-map("v", "H", "0")
-map("v", "J", "5j")
-map("v", "K", "5k")
-map("v", "L", "$")
+vim.keymap.set('v', 'H', '0')
+vim.keymap.set('v', 'J', '5j')
+vim.keymap.set('v', 'K', '5k')
+vim.keymap.set('v', 'L', '$')
 
-map("n", "Q", "<cmd>q<CR>")
-map("n", "S", "<cmd>w<CR>")
+vim.keymap.set('n', 'Q', '<cmd>q<CR>')
+vim.keymap.set('n', 'S', '<cmd>w<CR>')
 
-map("n", "<leader><CR>", "<cmd>nohl<CR>")
-map("n", "<leader>sc", "<cmd>set spell!<CR>")
+vim.keymap.set('n', '<leader><CR>', '<cmd>nohl<CR>')
+vim.keymap.set('n', '<leader>sc', '<cmd>set spell!<CR>')
 
-map("n", "tn", "<cmd>tabe<CR>")
-map("n", "th", "<cmd>-tabnext<CR>")
-map("n", "tl", "<cmd>+tabnext<CR>")
+vim.keymap.set('n', 'tn', '<cmd>tabe<CR>')
+vim.keymap.set('n', 'th', '<cmd>-tabnext<CR>')
+vim.keymap.set('n', 'tl', '<cmd>+tabnext<CR>')
 
-map("n", "sh", "<cmd>set nosplitright<CR><cmd>vsplit<CR>")
-map("n", "sl", "<cmd>set splitright<CR><cmd>vsplit<CR>")
-map("n", "sj", "<cmd>set splitbelow<CR><cmd>split<CR>")
-map("n", "sk", "<cmd>set nosplitbelow<CR><cmd>split<CR>")
+vim.keymap.set('n', 'sh', '<cmd>set nosplitright<CR><cmd>vsplit<CR>')
+vim.keymap.set('n', 'sl', '<cmd>set splitright<CR><cmd>vsplit<CR>')
+vim.keymap.set('n', 'sj', '<cmd>set splitbelow<CR><cmd>split<CR>')
+vim.keymap.set('n', 'sk', '<cmd>set nosplitbelow<CR><cmd>split<CR>')
 
-map("n", "<leader>l", "<C-w>l")
-map("n", "<leader>h", "<C-w>h")
-map("n", "<leader>j", "<C-w>j")
-map("n", "<leader>k", "<C-w>k")
+vim.keymap.set('n', '<leader>l', '<C-w>l')
+vim.keymap.set('n', '<leader>h', '<C-w>h')
+vim.keymap.set('n', '<leader>j', '<C-w>j')
+vim.keymap.set('n', '<leader>k', '<C-w>k')
 
-map('n', '<leader>i', function()
-    -- If we find a floating window, close it.
-    local found_float = false
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
-        if vim.api.nvim_win_get_config(win).relative ~= '' then
-            vim.api.nvim_win_close(win, true)
-            found_float = true
-        end
-    end
-
-    if found_float then
-        return
-    end
-
-    vim.diagnostic.open_float(nil, { focus = false, scope = 'cursor' })
-end, { desc = 'Toggle Diagnostics' })
+vim.keymap.set('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>i', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap = true, silent = true })

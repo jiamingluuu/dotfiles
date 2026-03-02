@@ -103,13 +103,13 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-# alias c="cd ~/Documents/code/"
 alias vi=nvim
 alias jo=joshuto
 alias ls=eza
 alias less=bat
 alias y=yazi
-alias lg='lazygit'
+alias lg=lazygit
+alias t="nvim ~/Documents/notes/todo.md"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
