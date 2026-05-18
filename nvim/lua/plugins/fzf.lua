@@ -9,7 +9,7 @@ return {
   ---@diagnostic disable: missing-fields
   opts = {},
   ---@diagnostic enable: missing-fields
-  vim.keymap.set('n', '<leader>ff', '<cmd>FzfLua files<CR>'),
+  vim.keymap.set('n', '<leader>p', '<cmd>FzfLua files<CR>'),
   vim.keymap.set('n', '<leader>fg', '<cmd>FzfLua live_grep<CR>'),
   vim.keymap.set('n', '<leader>fm', '<cmd>FzfLua marks<CR>'),
 }

@@ -9,10 +9,10 @@
 # All imports must either be absolute paths starting with `/`, or paths relative
 # to the user's home directory starting with `~/`.
 import:
-  # - ~/.config/alacritty/alacritty-theme/themes/gruvbox_dark.yaml
+  - ~/.config/alacritty/alacritty-theme/themes/gruvbox_dark.yaml
   # - ~/.config/alacritty/alacritty-theme/themes/github_light.yaml
   # - ~/.config/alacritty/themes/catppuccin/catppuccin-latte.yml
-  - ~/.config/alacritty/alacritty-theme/themes/catppuccin.yaml
+  # - ~/.config/alacritty/alacritty-theme/themes/catppuccin.yaml
   # - ~/.config/alacritty/alacritty-theme/themes/kanagawa_wave.yaml
 #  - /path/to/alacritty.yml
 
