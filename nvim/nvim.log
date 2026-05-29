@@ -1,0 +1,2 @@
+WRN 2026-05-27T13:19:45.339 ?.93224    server_start:197: Failed to start server: operation not permitted: /var/folders/ph/d1g576r12mz_v6trwp876whc0000gn/T/nvim.bytedance/r7V0qS/nvim.93224.0
+WRN 2026-05-27T13:19:45.393 ?.93224    server_start:197: Failed to start server: operation not permitted: /var/folders/ph/d1g576r12mz_v6trwp876whc0000gn/T/nvim.bytedance/r7V0qS/fzf-lua.1779859185.93224.1
