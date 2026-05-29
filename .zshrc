@@ -176,3 +176,4 @@ export CXX=/opt/homebrew/opt/llvm/bin/clang++
 # This section can be safely removed at any time if needed.
 [[ ! -r '/Users/q/.opam/opam-init/init.zsh' ]] || source '/Users/q/.opam/opam-init/init.zsh' > /dev/null 2> /dev/null
 # END opam configuration
+export PATH=/Users/bytedance/.local/bin:$PATH

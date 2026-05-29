@@ -1,0 +1,73 @@
+
+# Any items in the `env` entry below will be added as
+# environment variables. Some entries may override variables
+# set by alacritty itself.
+#env:
+  # TERM variable
+  #
+  # This value is used to set the `$TERM` environment variable for
+  # each instance of Alacritty. If it is not present, alacritty will
+  # check the local terminfo database and use `alacritty` if it is
+  # available, otherwise `xterm-256color` is used.
+  #TERM: alacritty
+
+[window]
+dimensions = { columns = 160, lines = 37}
+position = { x = 0, y = 0}
+decorations = "None"
+startup_mode = "Maximized"
+
+
+[font]
+normal      = { family = "MesloLGLDZ Nerd Font Mono", style = "Regular" }
+bold        = { family = "MesloLGLDZ Nerd Font Mono", style = "Bold"}
+italic      = { family = "MesloLGLDZ Nerd Font Mono", style = "Italic" }
+bold_italic = { family = "MesloLGLDZ Nerd Font Mono", style = "Bold Italic" }
+size = 15
+
+[cursor.style]
+shape    = "Block"
+blinking = "Off"
+
+[keyboard]
+bindings = [
+  { key = "K",              mods = "Command", mode = "~Vi|~Search", chars  = "\x0c"                 },
+  { key = "K",              mods = "Command", mode = "~Vi|~Search", action = "ClearHistory"          },
+  { key = "Key0",           mods = "Command",                       action = "ResetFontSize"         },
+  { key = "Equals",         mods = "Command",                       action = "IncreaseFontSize"      },
+  { key = "Plus",           mods = "Command",                       action = "IncreaseFontSize"      },
+  { key = "NumpadAdd",      mods = "Command",                       action = "IncreaseFontSize"      },
+  { key = "Minus",          mods = "Command",                       action = "DecreaseFontSize"      },
+  { key = "NumpadSubtract", mods = "Command",                       action = "DecreaseFontSize"      },
+  { key = "V",              mods = "Command",                       action = "Paste"                 },
+  { key = "C",              mods = "Command",                       action = "Copy"                  },
+  { key = "C",              mods = "Command", mode = "Vi|~Search",  action = "ClearSelection"        },
+  { key = "H",              mods = "Command",                       action = "Hide"                  },
+  { key = "H",              mods = "Command|Alt",                   action = "HideOtherApplications" },
+  { key = "M",              mods = "Command",                       action = "Minimize"              },
+  { key = "Q",              mods = "Command",                       action = "Quit"                  },
+  { key = "W",              mods = "Command",                       action = "Quit"                  },
+  { key = "N",              mods = "Command",                       action = "CreateNewWindow"       },
+  { key = "F",              mods = "Command|Control",               action = "ToggleFullscreen"      },
+  { key = "F",              mods = "Command", mode = "~Search",     action = "SearchForward"         },
+  { key = "B",              mods = "Command", mode = "~Search",     action = "SearchBackward"        },
+]
+
+[general]
+# Configuration for Alacritty, the GPU enhanced terminal emulator.
+
+# Import additional configuration files
+#
+# Imports are loaded in order, skipping all missing files, with the importing
+# file being loaded last. If a field is already present in a previous import, it
+# will be replaced.
+#
+# All imports must either be absolute paths starting with `/`, or paths relative
+# to the user's home directory starting with `~/`.
+import = [
+  # ~/.config/alacritty/alacritty-theme/themes/gruvbox_dark.yaml
+  # ~/.config/alacritty/alacritty-theme/themes/github_light.yaml
+  # ~/.config/alacritty/themes/catppuccin/catppuccin-latte.yml
+  # ~/.config/alacritty/alacritty-theme/themes/catppuccin.yaml
+  # ~/.config/alacritty/alacritty-theme/themes/kanagawa_wave.yaml
+]
