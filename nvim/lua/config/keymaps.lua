@@ -4,8 +4,8 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-vim.keymap.set('n', 'sh', '<cmd>split<CR>')
-vim.keymap.set('n', 'sv', '<cmd>vsplit<CR>')
+-- vim.keymap.set('n', 'sh', '<cmd>split<CR>')
+-- vim.keymap.set('n', 'sv', '<cmd>vsplit<CR>')
 vim.keymap.set('n', 'L', '$')
 vim.keymap.set('n', 'H', '0')
 
@@ -19,6 +19,14 @@ vim.keymap.set('n', 'S', '<cmd>w<CR>')
 
 vim.keymap.set('n', '<leader><CR>', '<cmd>nohl<CR>')
 vim.keymap.set('n', '<leader>sc', '<cmd>set spell!<CR>')
+vim.keymap.set('n', '<leader>sv', function()
+  local variable = vim.fn.expand '<cword>'
+  if variable == '' then return end
+
+  vim.fn.setreg('/', '\\<' .. vim.fn.escape(variable, '\\/.*$^~[]') .. '\\>')
+  vim.opt.hlsearch = true
+  vim.cmd 'normal! nzz'
+end, { desc = '[S]earch [V]ariable under cursor' })
 
 vim.keymap.set('n', 'tn', '<cmd>tabe<CR>')
 vim.keymap.set('n', 'th', '<cmd>-tabnext<CR>')

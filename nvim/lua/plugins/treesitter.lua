@@ -2,6 +2,7 @@ local parsers = {
   'bash',
   'c',
   'cpp',
+  'lua',
   'markdown',
   'markdown_inline',
   'python',
@@ -18,7 +19,7 @@ return {
 
     vim.api.nvim_create_autocmd('FileType', {
       group = vim.api.nvim_create_augroup('treesitter-start', { clear = true }),
-      pattern = { 'c', 'cpp', 'python', 'markdown', 'rust', 'typst' },
+      pattern = { 'c', 'cpp', 'lua', 'python', 'markdown', 'rust', 'typst' },
       callback = function(args)
         pcall(vim.treesitter.start, args.buf)
         vim.bo[args.buf].indentexpr = 'v:lua.require"nvim-treesitter".indentexpr()'

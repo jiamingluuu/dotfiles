@@ -91,10 +91,15 @@ return {
           '--clang-tidy',
           '--completion-style=detailed',
           '--header-insertion=iwyu',
-          '--function-arg-placeholders',
+          '--function-arg-placeholders=true',
         },
         filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
       },
+
+      -- Ruff provides Python lint diagnostics, formatting, and code actions.
+      -- It intentionally does not provide semantic navigation like go-to-definition,
+      -- so keep Pyright enabled below for jumps, references, hover, and type checking.
+      ruff = {},
 
       -- Python language server with completion, type-aware diagnostics, and
       -- definition/declaration/reference navigation.
