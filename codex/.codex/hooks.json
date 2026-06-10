@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$HOME/.codex/hooks/format_on_stop.py\"",
+            "timeout": 120,
+            "statusMessage": "Formatting modified code"
+          }
+        ]
+      }
+    ]
+  }
+}

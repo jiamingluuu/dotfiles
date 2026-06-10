@@ -2,6 +2,14 @@ return {
   'nvim-treesitter/nvim-treesitter',
   lazy = false,
   build = ':TSUpdate',
+  opts = {
+    ensure_installed = { 'bash', 'c', 'cpp', 'python', 'rust' },
+    indent = { enable = true },
+    context_commentstring = {
+      enable = true,
+      enable_autocmd = false,
+    },
+  },
   -- init = function()
   --   vim.api.nvim_create_autocmd('FileType', {
   --     pattern = { 'markdown' },
