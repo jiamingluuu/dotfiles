@@ -26,6 +26,26 @@ return {
     vim.api.nvim_create_autocmd('LspAttach', {
       group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
       callback = function(event)
+        ---@param mode? string|string[]
+        local map = function(keys, func, desc, mode)
+          mode = mode or 'n'
+          vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+        end
+
+        -- Navigation and code-intelligence keymaps. These are buffer-local, so
+        -- they only exist when an LSP server is attached to the current file.
+        map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+        map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+        map('gr', vim.lsp.buf.references, '[G]oto [R]eferences')
+        map('gI', vim.lsp.buf.implementation, '[G]oto [I]mplementation')
+        map('K', vim.lsp.buf.hover, 'Hover Documentation')
+        map('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation', 'i')
+        map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+        map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
+        map('<leader>e', vim.diagnostic.open_float, 'Show Line Diagnostics')
+        map('[d', function() vim.diagnostic.jump { count = -1, float = true } end, 'Previous Diagnostic')
+        map(']d', function() vim.diagnostic.jump { count = 1, float = true } end, 'Next Diagnostic')
+
         -- The following two autocommands are used to highlight references of the
         -- word under your cursor when your cursor rests there for a little while.
         --    See `:help CursorHold` for information about when this is executed
@@ -62,8 +82,34 @@ return {
     --  See `:help lsp-config` for information about keys and how to configure
     ---@type table<string, vim.lsp.Config>
     local servers = {
-      clangd = {},
-      pyright = {},
+      -- C / C++ language server. For best project-wide diagnostics and jumps,
+      -- generate a compile_commands.json file in your project root.
+      clangd = {
+        cmd = {
+          'clangd',
+          '--background-index',
+          '--clang-tidy',
+          '--completion-style=detailed',
+          '--header-insertion=iwyu',
+          '--function-arg-placeholders',
+        },
+        filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
+      },
+
+      -- Python language server with completion, type-aware diagnostics, and
+      -- definition/declaration/reference navigation.
+      pyright = {
+        settings = {
+          python = {
+            analysis = {
+              autoImportCompletions = true,
+              diagnosticMode = 'workspace',
+              typeCheckingMode = 'basic',
+              useLibraryCodeForTypes = true,
+            },
+          },
+        },
+      },
       rust_analyzer = {},
       tinymist = {},
       -- gopls = {},
@@ -116,11 +162,15 @@ return {
     local ensure_installed = vim.tbl_keys(servers or {})
     vim.list_extend(ensure_installed, {
       -- You can add other tools here that you want Mason to install
+      'debugpy',
     })
 
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
+    local capabilities = require('blink.cmp').get_lsp_capabilities(nil, true)
+
     for name, server in pairs(servers) do
+      server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
       vim.lsp.config(name, server)
       vim.lsp.enable(name)
     end
