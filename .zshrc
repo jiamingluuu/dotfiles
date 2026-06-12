@@ -110,6 +110,7 @@ alias less=bat
 alias y=yazi
 alias lg=lazygit
 alias t="nvim ~/Documents/notes/todo.md"
+alias notes="nvim ~/notes/"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
