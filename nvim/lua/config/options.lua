@@ -9,7 +9,7 @@ vim.o.number = true
 -- vim.o.relativenumber = true
 vim.o.mouse = 'a'
 vim.o.showmode = true
-vim.o.colorcolumn = '80,120'
+vim.o.colorcolumn = '80,100,120'
 
 -- Sync clipboard with the OS
 vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)

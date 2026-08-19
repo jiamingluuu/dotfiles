@@ -42,7 +42,7 @@ return {
         map('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation', 'i')
         map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
         map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
-        map('<leader>e', vim.diagnostic.open_float, 'Show Line Diagnostics')
+        -- map('<leader>e', vim.diagnostic.open_float, 'Show Line Diagnostics')
         map('[d', function() vim.diagnostic.jump { count = -1, float = true } end, 'Previous Diagnostic')
         map(']d', function() vim.diagnostic.jump { count = 1, float = true } end, 'Next Diagnostic')
 
