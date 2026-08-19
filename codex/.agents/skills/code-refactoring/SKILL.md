@@ -1,6 +1,7 @@
 ---
 name: code-refactoring
-description: Refactor small, messy source code (1-4 classes/files, up to ~400 lines each, in .py/.cpp/.rs) into clean, readable code — primarily by flattening nested if-else and for statements, clarifying conditions, and improving names. Use this skill whenever the user asks to refactor, clean up, simplify, untangle, de-nest, or improve the readability of code, or describes code as messy / deeply nested / hard to follow / full of duplicated conditions or unclear names, even if they never say the word "refactor". This skill is strongly biased toward simple, local, in-place transformations and AGAINST over-engineering: do NOT introduce helper functions, dataclasses, structs, classes, traits, or type aliases unless they are genuinely warranted.
+description: |
+    Refactor small, messy source code (1-4 classes/files, up to ~400 lines each, in .py/.cpp/.rs) into clean, readable code — primarily by flattening nested if-else and for statements, clarifying conditions, and improving names. Use this skill whenever the user asks to refactor, clean up, simplify, untangle, de-nest, or improve the readability of code, or describes code as messy / deeply nested / hard to follow / full of duplicated conditions or unclear names, even if they never say the word "refactor". This skill is strongly biased toward simple, local, in-place transformations and AGAINST over-engineering\: do NOT introduce helper functions, dataclasses, structs, classes, traits, or type aliases unless they are genuinely warranted.
 ---
 
 # Code Refactoring
