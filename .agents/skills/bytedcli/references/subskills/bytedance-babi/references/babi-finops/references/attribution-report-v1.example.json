@@ -1,0 +1,135 @@
+{
+  "schema_version": "babi_finops_attribution_v1",
+  "meta": {
+    "title": "<对象> <当期> vs <基准期> 成本异动归因",
+    "analysis_object": "<正式对象名称>",
+    "analysis_object_id": "<稳定 ID>",
+    "analysis_object_type": "account|team|service_tree",
+    "trend_window": "<当期> vs <基准期>",
+    "current_period": "<当期>",
+    "base_period": "<基准期>",
+	"timezone": "Asia/Shanghai",
+	"statistic_period": "day",
+	"settlement_type": 1,
+	"amount_type": 0,
+	"report_id": "<Insight report ID>",
+	"instance_id": "<released Insight instance ID>",
+	"insight_state": "ready",
+    "links": {
+      "oncall": "<Oncall URL>",
+      "ticket_url": "<归因工单 URL>",
+      "instance_url": "<洞察实例 URL>",
+      "report_url": "<报告配置 URL>"
+    },
+    "unit_cd_cost_assessments": [
+      {
+        "indicator": "<指标名>",
+        "summary": "<只含波动幅度的单位 CD 成本判断>",
+        "status": "正常|异常|未判断",
+        "driver": "成本驱动|CD 驱动|共同驱动|未判断",
+        "reason": "<证据不足时填写>"
+      }
+    ]
+  },
+  "events": [
+    {
+      "date": "<事件日期>",
+      "title": "<事件标题>",
+      "direction": "up|down",
+      "status": "confirmed|pending",
+      "amount": 0,
+      "amount_text": "+0.00 万",
+      "rate_text": "+0.00%",
+      "current_cost_text": "0.00 万",
+      "baseline_cost_text": "0.00 万",
+      "event_url": "<事件或洞察 URL；没有则留空>",
+      "root_causes": [
+        {
+          "cause": "<已证实原因或待复核原因>",
+          "status": "confirmed|pending",
+          "amount": 0,
+          "amount_text": "+0.00 万",
+          "share_text": "0.00%",
+          "event_label": "<事件名称>",
+          "event_url": "<事件 URL；没有则留空>",
+          "action": "<直接承接原因的处置动作>",
+          "owner_role": "业务方主责 / 商品方协同",
+          "impact_scope_top5": [
+            {
+              "type": "cost_product|bytetree|psm|charge_item",
+              "name": "<影响对象>",
+              "id": "<稳定 ID>",
+              "full_name": "<完整路径，可选>",
+              "amount": 0,
+              "amount_text": "+0.00 万"
+            }
+          ]
+        }
+      ],
+      "details": [
+        {
+          "event_type": "主事件|次级事件|反向贡献|数据质量事件",
+          "dimension": "成本商品|服务树|PSM|计费项|数据质量",
+          "object": {
+            "name": "<对象名称>",
+            "id": "<稳定 ID>",
+            "full_name": "<完整路径，可选>",
+            "pricing_method": "<计费方式，可选>",
+            "product_line": "<产品线，可选>"
+          },
+          "amount": 0,
+          "amount_text": "+0.00 万",
+          "rate_text": "+0.00%",
+          "current_cost_text": "0.00 万",
+          "baseline_cost_text": "0.00 万",
+          "cause": "<原因>",
+          "cause_path": "<派生后的业务归因链路>",
+          "action": "<处置动作>",
+          "owner_role": "<责任主体>",
+          "owners": [
+            {
+              "name": "<姓名>",
+              "email": "<邮箱>",
+              "mention": "<Lark mention，可选>"
+            }
+          ],
+          "unit_cd_cost_assessments": []
+        }
+      ]
+    }
+  ],
+	"attribution_path_audits": [
+	  {
+		"analysis_path": "cost_product -> bytetree -> charge_item",
+		"analysis_cause_dims": ["cost_product", "bytetree", "charge_item"],
+		"node_count": 1,
+		"request_count": 1,
+		"truncated": false,
+		"errors": []
+	  },
+	  {
+		"analysis_path": "cost_product -> charge_item -> bytetree",
+		"analysis_cause_dims": ["cost_product", "charge_item", "bytetree"],
+		"node_count": 1,
+		"request_count": 1,
+		"truncated": false,
+		"errors": []
+	  }
+	],
+  "dimension_tables": [
+    {
+      "key": "area_summary",
+      "title": "分大区汇总",
+      "columns": ["大区", "当期成本", "基准期成本", "波动", "幅度", "说明"],
+      "rows": []
+    },
+    {
+      "key": "data_quality",
+      "title": "数据完整性复核",
+      "columns": ["检查对象", "监控结果", "处理归属", "负责人"],
+      "rows": []
+    }
+  ],
+  "attribution_path_records": [],
+  "evidence": []
+}

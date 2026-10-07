@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codex.local/schemas/d2c-context.schema.json",
+  "title": "D2C Context Contract",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "target",
+    "dependencyPolicy",
+    "componentMappings",
+    "tokenMappings",
+    "dataProtocolMappings",
+    "validation"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "d2c-context/v1"
+    },
+    "target": {
+      "type": "object",
+      "required": ["platform", "styleLanguage", "unit"],
+      "properties": {
+        "platform": {
+          "enum": ["lynx-ttml", "lynx-react", "browser-react"]
+        },
+        "styleLanguage": {
+          "enum": ["less", "css", "scss"]
+        },
+        "unit": {
+          "enum": ["rpx", "px"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "dependencyPolicy": {
+      "type": "object",
+      "required": [
+        "componentMappingFirst",
+        "installMissingMappedPackages",
+        "registryFallback",
+        "fallbackRequiresEvidence"
+      ],
+      "properties": {
+        "componentMappingFirst": { "type": "boolean" },
+        "installMissingMappedPackages": { "type": "boolean" },
+        "registryFallback": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" }
+        },
+        "fallbackRequiresEvidence": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "componentMappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["nodeId", "packageName", "componentName", "targetVersion"],
+        "properties": {
+          "nodeId": { "type": "string", "minLength": 1 },
+          "nodeName": { "type": "string" },
+          "packageName": { "type": "string", "minLength": 1 },
+          "componentName": { "type": "string", "minLength": 1 },
+          "targetVersion": { "type": "string", "minLength": 1 },
+          "variantProperties": { "type": "object" },
+          "props": { "type": "object" },
+          "propsPatch": { "type": "object" },
+          "tokenMappingIds": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "tokenMappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "designToken", "codeToken"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "designToken": { "type": "string", "minLength": 1 },
+          "rawValue": { "type": "string" },
+          "codeToken": { "type": "string", "minLength": 1 },
+          "codeUsage": { "type": "object" },
+          "usages": { "type": "array" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "dataProtocolMappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "targetComponent", "requiredState"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "figmaEvidence": { "type": "object" },
+          "targetComponent": { "type": "string", "minLength": 1 },
+          "requiredState": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["dataPath"],
+              "properties": {
+                "dataPath": { "type": "string", "minLength": 1 },
+                "valueKind": { "type": "string" },
+                "value": {},
+                "reason": { "type": "string" }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "agentRuleFiles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\.md$"
+      }
+    },
+    "fallbackRecords": {
+      "type": "array"
+    },
+    "validation": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,18 @@
+{
+  "skill_name": "bytedance-byteflow",
+  "should_trigger": [
+    "查一下 ByteFlow 里 demo_workflow 的 statemachine 和 revision",
+    "这个 ByteFlow execution URL 现在跑到哪个节点了",
+    "帮我列一下 ByteFlow app 里的 execution、activity 和 DAG",
+    "帮我验证这个 ByteFlow workflow JSON 的语法",
+    "帮我 stop 一个 ByteFlow execution，但执行前必须让我确认",
+    "我要创建 ByteFlow revision，但先 dry-run",
+    "bytedcli 能不能操作 byteflow 的 revision"
+  ],
+  "should_not_trigger": [
+    "帮我写一个普通 shell 脚本解析 JSON",
+    "查询 Bits pipeline 的构建日志",
+    "创建一个 Feishu 工作流审批",
+    "帮我 review 这个 Go controller 的代码"
+  ]
+}

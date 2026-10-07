@@ -1,0 +1,41 @@
+{
+  "skill_name": "bytedance-byteflow",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我看一下 ByteFlow 里 example_app 这个 app 的 statemachine、revisions、executions、activities 和 DAG，但不要改线上 flow",
+      "expected_output": "Uses read-only app/statemachine/revision/execution/activity/DAG queries, avoids writes, redacts credentials, and reports statemachine/revision/execution/activity/DAG summaries.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我有一个 ByteFlow workflow JSON，帮我检查语法并解释每个节点的作用",
+      "expected_output": "Runs scripts/byteflow_workflow_validator.py or byteflow_api.py workflow-validate, reports fixed WFxxx check results, explains StartAt, state count, state types, transitions, and flags risky/missing pieces.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "帮我创建一个 ByteFlow revision，workflow 定义在 workflow.json",
+      "expected_output": "Explains that classic revision create snapshots the current statemachine definition, checks whether online revisions exist, asks for explicit risk consent if none exist, requires per-operation user confirmation from dry-run, proposes dry-run/update-then-revision sequence, and does not write by default.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "帮我把 demo_workflow 里某个 statemachine 的 workflow 更新成 workflow.json，但先不要真改",
+      "expected_output": "Uses statemachine-update with --dry-run, validates workflow.json with fixed WFxxx checks, fetches current statemachine and revision guard, reports required_confirm_write and risk, and does not execute PUT.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "这个 ByteFlow execution URL 现在跑到什么节点了：https://example.test/byteflow/app/example_app/execution/12345",
+      "expected_output": "Uses scripts/byteflow_api.py execution-current --url, reports execution status, active_states, recent events, redacts credentials, and does not use write commands.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "帮我停止这个 ByteFlow execution，但先让我确认风险：https://example.test/byteflow/app/example_app/execution/12345",
+      "expected_output": "Uses scripts/byteflow_api.py execution-stop --url ... --dry-run, reports current execution status and required_confirm_write, explains that live execution requires explicit human confirmation plus --yes --confirm-write, and does not stop by default.",
+      "files": []
+    }
+  ]
+}

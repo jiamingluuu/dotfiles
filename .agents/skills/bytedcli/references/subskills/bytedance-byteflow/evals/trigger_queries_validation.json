@@ -1,0 +1,18 @@
+{
+  "skill_name": "bytedance-byteflow",
+  "should_trigger": [
+    "这个 ASL 里 Choice 的 Next 有没有写错",
+    "帮我看 ByteFlow 控制台这个 app 下有哪些 revisions",
+    "https://example.test/byteflow/app/example_app/execution/12345 现在跑到哪一步了",
+    "帮我看 ByteFlow 控制台 Express Execution 和 DAG Execution 的只读状态",
+    "帮我创建 ByteFlow activity，不过真正提交前需要人工确认",
+    "我想更新某个 stateMachine 的 definition，但是要避免线上风险",
+    "生成一个 ByteFlow workflow，然后解释每个节点"
+  ],
+  "should_not_trigger": [
+    "帮我用 lark-cli 建一个多维表格",
+    "解释 AWS Step Functions 的收费",
+    "帮我查 Hive 表字段",
+    "把这个 bytedcli npm 包升级一下"
+  ]
+}

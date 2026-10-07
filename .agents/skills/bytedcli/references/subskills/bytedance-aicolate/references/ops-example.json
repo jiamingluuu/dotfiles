@@ -1,0 +1,16 @@
+{
+  "ops": [
+    {
+      "type": "insert_llm_before_end",
+      "title": "Summary",
+      "sources": "end_inputs",
+      "output_name": "summary",
+      "system_prompt": "You summarize workflow outputs for the final response.",
+      "prompt": "Summarize these workflow results for the final step.\n- old_result: {{old_result}}\n- new_result: {{new_result}}\nReturn only the final summary text.",
+      "end_update": {
+        "mode": "top_level_param",
+        "param_name": "summary"
+      }
+    }
+  ]
+}

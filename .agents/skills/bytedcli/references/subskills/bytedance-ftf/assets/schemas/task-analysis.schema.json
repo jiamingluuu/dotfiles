@@ -1,0 +1,1669 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.test/schemas/ftf/task-analysis.schema.json",
+  "title": "FTF Task Analysis Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "metadata",
+    "verdict",
+    "scope",
+    "funnel",
+    "test_sufficiency",
+    "defects",
+    "diff_attributions",
+    "replay_failures",
+    "actions",
+    "evidence_boundaries"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 12
+    },
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    },
+    "verdict": {
+      "$ref": "#/$defs/verdict"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "funnel": {
+      "$ref": "#/$defs/funnel"
+    },
+    "test_sufficiency": {
+      "$ref": "#/$defs/testSufficiency"
+    },
+    "defects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "diff_attributions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "replay_failures": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "actions": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/recommendation"
+      }
+    },
+    "evidence_boundaries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidenceBoundary"
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nonEmptyObject": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "nonEmptyObjectArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/nonEmptyObject"
+      }
+    },
+    "nullableString": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      ]
+    },
+    "httpsOrFileUrl": {
+      "type": "string",
+      "pattern": "^(https://|file://)"
+    },
+    "httpsUrl": {
+      "type": "string",
+      "pattern": "^https://"
+    },
+    "immutableCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{40}([0-9a-fA-F]{24})?$"
+    },
+    "nullableImmutableCommit": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/immutableCommit"
+        }
+      ]
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "psm",
+        "repository",
+        "branch",
+        "commit",
+        "environment"
+      ],
+      "properties": {
+        "psm": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "repository": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "branch": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "commit": {
+          "$ref": "#/$defs/nullableImmutableCommit"
+        },
+        "environment": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "task_url",
+        "snapshot_time",
+        "task_update_time",
+        "space_id",
+        "psm",
+        "environment",
+        "target_identity",
+        "base_identity",
+        "filters"
+      ],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "task_url": {
+          "$ref": "#/$defs/httpsUrl"
+        },
+        "snapshot_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "task_update_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "space_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "psm": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "environment": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "target_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "base_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "filters": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "taskValidity": {
+      "enum": [
+        "有效",
+        "部分有效",
+        "无效",
+        "无法确认"
+      ]
+    },
+    "attributionCompleteness": {
+      "enum": [
+        "完整",
+        "部分",
+        "失败"
+      ]
+    },
+    "releaseAdvice": {
+      "enum": [
+        "通过",
+        "有条件通过",
+        "不通过",
+        "不可据此判断"
+      ]
+    },
+    "verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "confirmed_defect_count",
+        "summary",
+        "task_validity",
+        "task_validity_reason",
+        "attribution_completeness",
+        "attribution_completeness_reason",
+        "release_advice",
+        "release_advice_reason"
+      ],
+      "properties": {
+        "confirmed_defect_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "task_validity": {
+          "$ref": "#/$defs/taskValidity"
+        },
+        "task_validity_reason": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "attribution_completeness": {
+          "$ref": "#/$defs/attributionCompleteness"
+        },
+        "attribution_completeness_reason": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "release_advice": {
+          "$ref": "#/$defs/releaseAdvice"
+        },
+        "release_advice_reason": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "cluster_ids",
+        "unresolved_cluster_ids"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cluster_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "unresolved_cluster_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "flowInventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "flow_ids",
+        "unresolved_flow_ids"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "flow_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "unresolved_flow_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analysis_methods",
+        "diff_inventory",
+        "replay_failure_inventory",
+        "final_task_update_time"
+      ],
+      "properties": {
+        "analysis_methods": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "diff_inventory": {
+          "$ref": "#/$defs/inventory"
+        },
+        "replay_failure_inventory": {
+          "$ref": "#/$defs/flowInventory"
+        },
+        "final_task_update_time": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "nullableCount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "nullableRatio": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "funnel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_flows",
+        "sent_success",
+        "sent_failure",
+        "abnormal_responses",
+        "unasserted",
+        "diff_flows",
+        "pending_confirmation"
+      ],
+      "properties": {
+        "total_flows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sent_success": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sent_failure": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "abnormal_responses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unasserted": {
+          "$ref": "#/$defs/nullableCount"
+        },
+        "diff_flows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pending_confirmation": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "testSufficiency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_methods",
+        "expected_method_keys",
+        "actual_methods",
+        "interface_coverage",
+        "code_coverage",
+        "scene_coverage",
+        "method_coverage_details"
+      ],
+      "properties": {
+        "expected_methods": {
+          "$ref": "#/$defs/nullableCount"
+        },
+        "expected_method_keys": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            }
+          ]
+        },
+        "actual_methods": {
+          "$ref": "#/$defs/nullableCount"
+        },
+        "interface_coverage": {
+          "$ref": "#/$defs/nullableRatio"
+        },
+        "code_coverage": {
+          "$ref": "#/$defs/nullableRatio"
+        },
+        "scene_coverage": {
+          "$ref": "#/$defs/nullableRatio"
+        },
+        "method_coverage_details": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/methodCoverageDetail"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "methodCoverageDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "total_flows",
+        "failed_flows"
+      ],
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "total_flows": {
+          "$ref": "#/$defs/nullableCount"
+        },
+        "failed_flows": {
+          "$ref": "#/$defs/nullableCount"
+        }
+      }
+    },
+    "rootCauseType": {
+      "enum": [
+        "业务变更",
+        "系统噪音",
+        "稳定性问题",
+        "FTF平台问题",
+        "其他"
+      ]
+    },
+    "evidenceKind": {
+      "enum": [
+        "flow",
+        "code",
+        "log",
+        "trace",
+        "task_config",
+        "config",
+        "deployment",
+        "requirement",
+        "merge_request",
+        "error_catalog",
+        "evidence_boundary"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "高",
+        "低"
+      ]
+    },
+    "expectedness": {
+      "enum": [
+        "预期内",
+        "非预期",
+        "待确认"
+      ]
+    },
+    "findingReason": {
+      "enum": [
+        "业务缺陷",
+        "预期变更",
+        "噪音",
+        "FTF平台问题"
+      ]
+    },
+    "codeCorrelation": {
+      "enum": [
+        "strong",
+        "medium",
+        "weak",
+        "not_applicable"
+      ]
+    },
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "display_name",
+        "difference",
+        "subject",
+        "evidence_id",
+        "source_id",
+        "flow_id"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "difference": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "subject": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "evidence_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "source_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "causeSignature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mechanism",
+        "responsible_psm",
+        "repair_target",
+        "expectedness"
+      ],
+      "properties": {
+        "mechanism": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "responsible_psm": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "repair_target": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "expectedness": {
+          "$ref": "#/$defs/expectedness"
+        }
+      }
+    },
+    "attributionMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_type",
+        "source_id",
+        "flow_ids",
+        "method",
+        "direction_or_stage",
+        "diff_path_or_reason",
+        "response_signature",
+        "value_shape",
+        "candidate_responsible_psm",
+        "cause_signature"
+      ],
+      "properties": {
+        "source_type": {
+          "enum": [
+            "diff_cluster",
+            "replay_failure"
+          ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "flow_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "method": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "direction_or_stage": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "diff_path_or_reason": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "response_signature": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "value_shape": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "candidate_responsible_psm": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "cause_signature": {
+          "$ref": "#/$defs/causeSignature"
+        }
+      }
+    },
+    "investigationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "members"
+      ],
+      "properties": {
+        "source": {
+          "enum": [
+            "code",
+            "log",
+            "trace",
+            "response",
+            "configuration",
+            "deployment"
+          ]
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/investigationSourceResult"
+          }
+        }
+      }
+    },
+    "attributionMemberRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_type",
+        "source_id"
+      ],
+      "properties": {
+        "source_type": {
+          "enum": [
+            "diff_cluster",
+            "replay_failure"
+          ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "investigationSourceResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_type",
+        "source_id",
+        "available",
+        "checked",
+        "evidence_ids",
+        "acquisition_attempt",
+        "blocker",
+        "recovery_action",
+        "outcome"
+      ],
+      "properties": {
+        "source_type": {
+          "enum": [
+            "diff_cluster",
+            "replay_failure"
+          ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "checked": {
+          "type": "boolean"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          },
+          "uniqueItems": true
+        },
+        "acquisition_attempt": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "blocker": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "recovery_action": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "outcome": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        }
+      }
+    },
+    "investigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "sources",
+        "introduced_by_current_change",
+        "broad_impact"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "root_cause_proven",
+            "exhausted_unresolved",
+            "evidence_blocked"
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/investigationSource"
+          }
+        },
+        "introduced_by_current_change": {
+          "type": "boolean"
+        },
+        "broad_impact": {
+          "type": "boolean"
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "target",
+        "change",
+        "verification",
+        "evidence_ids"
+      ],
+      "properties": {
+        "owner": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "target": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "change": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "verification": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "flowEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "summary",
+        "url",
+        "psm",
+        "method",
+        "direction",
+        "observable_result",
+        "source_id",
+        "flow_id"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "const": "flow"
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "url": {
+          "$ref": "#/$defs/httpsUrl"
+        },
+        "psm": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "method": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "direction": {
+          "enum": [
+            "inbound",
+            "outbound"
+          ]
+        },
+        "observable_result": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "source_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "codeEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "summary",
+        "url",
+        "psm",
+        "repository",
+        "ref",
+        "member_refs",
+        "file",
+        "line_start",
+        "line_end",
+        "symbol",
+        "logic"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "enum": [
+            "code",
+            "error_catalog"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "url": {
+          "$ref": "#/$defs/httpsUrl"
+        },
+        "psm": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "repository": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "ref": {
+          "$ref": "#/$defs/immutableCommit"
+        },
+        "member_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/attributionMemberRef"
+          }
+        },
+        "file": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "line_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line_end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "symbol": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "logic": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "excerpt": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "runtimeEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "summary",
+        "url",
+        "psm",
+        "log_id_or_trace_id",
+        "member_refs",
+        "flow_ids",
+        "time_window",
+        "observation"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "enum": [
+            "log",
+            "trace"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/httpsUrl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "psm": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "log_id_or_trace_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "member_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/attributionMemberRef"
+          }
+        },
+        "flow_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "time_window": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "observation": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "mechanismEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "summary",
+        "url",
+        "psm",
+        "subject",
+        "effective_time_window",
+        "observed_value",
+        "logic"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "enum": [
+            "task_config",
+            "config",
+            "deployment"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "url": {
+          "$ref": "#/$defs/httpsOrFileUrl"
+        },
+        "psm": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "subject": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "effective_time_window": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "observed_value": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "logic": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "simpleEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "summary",
+        "url"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "enum": [
+            "requirement",
+            "merge_request"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "url": {
+          "$ref": "#/$defs/httpsOrFileUrl"
+        }
+      }
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "summary",
+        "url",
+        "reason",
+        "recovery_action",
+        "material"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "const": "evidence_boundary"
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "url": {
+          "type": "null"
+        },
+        "reason": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "recovery_action": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "material": {
+          "type": "boolean"
+        }
+      }
+    },
+    "evidence": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/flowEvidence"
+        },
+        {
+          "$ref": "#/$defs/codeEvidence"
+        },
+        {
+          "$ref": "#/$defs/runtimeEvidence"
+        },
+        {
+          "$ref": "#/$defs/mechanismEvidence"
+        },
+        {
+          "$ref": "#/$defs/simpleEvidence"
+        },
+        {
+          "$ref": "#/$defs/evidenceBoundary"
+        }
+      ]
+    },
+    "severity": {
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ]
+    },
+    "admission": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "behavior_anomaly_evidence_ids",
+            "business_ownership_evidence_ids",
+            "real_trigger_evidence_ids",
+            "producer_transport_evidence_ids",
+            "consumer_impact_evidence_ids",
+            "code_causality_evidence_ids",
+            "counterexample_evidence_ids"
+          ],
+          "properties": {
+            "behavior_anomaly_evidence_ids": {
+              "$ref": "#/$defs/nonEmptyEvidenceIds"
+            },
+            "business_ownership_evidence_ids": {
+              "$ref": "#/$defs/nonEmptyEvidenceIds"
+            },
+            "real_trigger_evidence_ids": {
+              "$ref": "#/$defs/nonEmptyEvidenceIds"
+            },
+            "producer_transport_evidence_ids": {
+              "$ref": "#/$defs/nonEmptyEvidenceIds"
+            },
+            "consumer_impact_evidence_ids": {
+              "$ref": "#/$defs/nonEmptyEvidenceIds"
+            },
+            "code_causality_evidence_ids": {
+              "$ref": "#/$defs/nonEmptyEvidenceIds"
+            },
+            "counterexample_evidence_ids": {
+              "$ref": "#/$defs/nonEmptyEvidenceIds"
+            }
+          }
+        }
+      ]
+    },
+    "nonEmptyEvidenceIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      }
+    },
+    "analyzerState": {
+      "enum": [
+        "invalid_observation",
+        "analysis_incomplete",
+        "evidence_blocked",
+        "proven_code_caused",
+        "proven_not_code_caused",
+        "runtime_unresolved"
+      ]
+    },
+    "analyzerRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "similar_diff_id",
+        "repository",
+        "base_ref",
+        "target_ref",
+        "aggregate",
+        "path",
+        "op",
+        "analysis_state",
+        "verdict",
+        "caused_by_code_change",
+        "confidence",
+        "missing_evidence",
+        "needed_evidence",
+        "warnings",
+        "result_artifact"
+      ],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "similar_diff_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "analysis_state": {
+          "$ref": "#/$defs/analyzerState"
+        },
+        "repository": {
+          "$ref": "#/$defs/nonEmptyString",
+          "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+$"
+        },
+        "base_ref": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "target_ref": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "aggregate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attribution_type",
+            "caused_by_code_change",
+            "confidence"
+          ],
+          "properties": {
+            "attribution_type": {
+              "enum": [
+                "bug_code",
+                "not_code_related",
+                "unknown"
+              ]
+            },
+            "caused_by_code_change": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "path": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "op": {
+          "enum": [
+            "add",
+            "delete",
+            "modify"
+          ]
+        },
+        "verdict": {
+          "enum": [
+            "unknown",
+            "caused",
+            "not_caused"
+          ]
+        },
+        "caused_by_code_change": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "high",
+            "low"
+          ]
+        },
+        "invalid_observation_details": {
+          "$ref": "#/$defs/nonEmptyObjectArray"
+        },
+        "incomplete_stages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyObject"
+          }
+        },
+        "evidence_blockers": {
+          "$ref": "#/$defs/nonEmptyObjectArray"
+        },
+        "causal_proof": {
+          "$ref": "#/$defs/nonEmptyObject"
+        },
+        "exclusion_proof": {
+          "$ref": "#/$defs/nonEmptyObject"
+        },
+        "alternative_runtime_proof": {
+          "$ref": "#/$defs/nonEmptyObject"
+        },
+        "evidence_gaps": {
+          "$ref": "#/$defs/nonEmptyObjectArray"
+        },
+        "self_proof": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reverse_chain",
+            "evidence_solid",
+            "counterfactual",
+            "triple_align",
+            "falsification"
+          ],
+          "properties": {
+            "reverse_chain": { "const": "pass" },
+            "evidence_solid": { "const": "pass" },
+            "counterfactual": { "const": "pass" },
+            "triple_align": { "const": "pass" },
+            "falsification": { "const": "no counter-example found" }
+          }
+        },
+        "missing_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "needed_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "evidence_summary": {
+          "type": "object"
+        },
+        "proof_summary": {
+          "type": "object"
+        },
+        "cause_projection": {
+          "type": "object"
+        },
+        "warnings": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "result_artifact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bytes",
+            "sha256"
+          ],
+          "properties": {
+            "bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "analysis_state": { "const": "invalid_observation" },
+            "verdict": { "const": "unknown" },
+            "caused_by_code_change": { "const": null },
+            "confidence": { "const": "low" }
+          },
+          "required": ["invalid_observation_details"],
+          "not": {
+            "anyOf": [
+              { "required": ["incomplete_stages"] },
+              { "required": ["evidence_blockers"] },
+              { "required": ["causal_proof"] },
+              { "required": ["exclusion_proof"] },
+              { "required": ["alternative_runtime_proof"] },
+              { "required": ["evidence_gaps"] },
+              { "required": ["self_proof"] }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "analysis_state": { "const": "analysis_incomplete" },
+            "verdict": { "const": "unknown" },
+            "caused_by_code_change": { "const": null },
+            "confidence": { "const": "low" }
+          },
+          "required": ["incomplete_stages"],
+          "not": {
+            "anyOf": [
+              { "required": ["invalid_observation_details"] },
+              { "required": ["evidence_blockers"] },
+              { "required": ["causal_proof"] },
+              { "required": ["exclusion_proof"] },
+              { "required": ["alternative_runtime_proof"] },
+              { "required": ["evidence_gaps"] },
+              { "required": ["self_proof"] }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "analysis_state": { "const": "evidence_blocked" },
+            "verdict": { "const": "unknown" },
+            "caused_by_code_change": { "const": null },
+            "confidence": { "const": "low" },
+            "incomplete_stages": { "maxItems": 0 }
+          },
+          "required": ["evidence_blockers"],
+          "not": {
+            "anyOf": [
+              { "required": ["invalid_observation_details"] },
+              { "required": ["causal_proof"] },
+              { "required": ["exclusion_proof"] },
+              { "required": ["alternative_runtime_proof"] },
+              { "required": ["evidence_gaps"] },
+              { "required": ["self_proof"] }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "analysis_state": { "const": "proven_code_caused" },
+            "verdict": { "const": "caused" },
+            "caused_by_code_change": { "const": true },
+            "confidence": { "const": "high" }
+          },
+          "required": ["causal_proof", "self_proof"],
+          "not": {
+            "anyOf": [
+              { "required": ["invalid_observation_details"] },
+              { "required": ["incomplete_stages"] },
+              { "required": ["evidence_blockers"] },
+              { "required": ["exclusion_proof"] },
+              { "required": ["alternative_runtime_proof"] },
+              { "required": ["evidence_gaps"] }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "analysis_state": { "const": "proven_not_code_caused" },
+            "verdict": { "const": "not_caused" },
+            "caused_by_code_change": { "const": false },
+            "confidence": { "const": "high" }
+          },
+          "required": ["exclusion_proof", "self_proof"],
+          "not": {
+            "anyOf": [
+              { "required": ["invalid_observation_details"] },
+              { "required": ["incomplete_stages"] },
+              { "required": ["evidence_blockers"] },
+              { "required": ["causal_proof"] },
+              { "required": ["evidence_gaps"] }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "analysis_state": { "const": "runtime_unresolved" },
+            "verdict": { "const": "unknown" },
+            "caused_by_code_change": { "const": null },
+            "confidence": { "const": "low" },
+            "incomplete_stages": { "maxItems": 0 }
+          },
+          "required": ["evidence_gaps", "self_proof"],
+          "not": {
+            "anyOf": [
+              { "required": ["invalid_observation_details"] },
+              { "required": ["evidence_blockers"] },
+              { "required": ["causal_proof"] },
+              { "required": ["exclusion_proof"] },
+              { "required": ["alternative_runtime_proof"] }
+            ]
+          }
+        }
+      ]
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "severity",
+        "title",
+        "root_cause_type",
+        "subtype",
+        "confidence",
+        "finding_reason",
+        "expectedness",
+        "responsible_party",
+        "code_correlation",
+        "phenomenon",
+        "cause_signature",
+        "attribution_members",
+        "investigation",
+        "samples",
+        "root_cause",
+        "evidence",
+        "impact_counts",
+        "recommendation",
+        "admission",
+        "analyzer_runs",
+        "covered_cluster_ids",
+        "covered_flow_ids"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "root_cause_type": {
+          "$ref": "#/$defs/rootCauseType"
+        },
+        "subtype": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "expectedness": {
+          "$ref": "#/$defs/expectedness"
+        },
+        "finding_reason": {
+          "$ref": "#/$defs/findingReason"
+        },
+        "responsible_party": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "code_correlation": {
+          "$ref": "#/$defs/codeCorrelation"
+        },
+        "phenomenon": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "cause_signature": {
+          "$ref": "#/$defs/causeSignature"
+        },
+        "attribution_members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/attributionMember"
+          }
+        },
+        "investigation": {
+          "$ref": "#/$defs/investigation"
+        },
+        "samples": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/$defs/sample"
+          }
+        },
+        "root_cause": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "impact_counts": {
+          "$ref": "#/$defs/impactCounts"
+        },
+        "recommendation": {
+          "$ref": "#/$defs/recommendation"
+        },
+        "admission": {
+          "$ref": "#/$defs/admission"
+        },
+        "analyzer_runs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/analyzerRun"
+          }
+        },
+        "covered_cluster_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "covered_flow_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "impactCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "methods",
+        "flows",
+        "field_clusters"
+      ],
+      "properties": {
+        "methods": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "flows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "field_clusters": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

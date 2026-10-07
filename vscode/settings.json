@@ -1,0 +1,46 @@
+{
+    "extensions.supportUntrustedWorkspaces": {
+        "byted-ide.dev-environment-manager": {
+            "supported": true
+        }
+    },
+    "workbench.colorTheme": "Catppuccin Latte",
+    "extensions.experimental.affinity": {
+        "asvetliakov.vscode-neovim": 1
+    },
+    "remote.SSH.defaultExtensions": [
+        "byted-ide.gallery"
+    ],
+    "editor.fontFamily": "MesloLGLDZ Nerd Font",
+    "editor.fontSize": 14,
+    "clangd.detectExtensionConflicts": false,
+    "security.promptForRemoteFileProtocolHandling": false,
+    "catppuccin.italicKeywords": false,
+    "clangd.path": "/usr/local/bin/clangd",
+    "clangd.arguments": [
+        "--query-driver=/opt/tiger/typhoon-blade/gccs/x86_64-x86_64-clang-1101/bin/clang",
+        "--compile-commands-dir=/cloudide/workspace/build64_debug/",
+        "-j=24",
+        "--background-index",
+        "--all-scopes-completion",
+        "--clang-tidy",
+        "--clang-tidy-checks=performance-*, bugprone-*, misc-*, google-*, readability-*, portability-*, -google-explicit-constructor, -misc-non-private-member-variables-in-classes, -google-build-using-namespace",
+        "--completion-parse=auto",
+        "--completion-style=detailed",
+        "--enable-config",
+        "--function-arg-placeholders=true",
+        "--header-insertion-decorators",
+        "--header-insertion=iwyu",
+        "--pch-storage=memory",
+        "--pretty"
+    ],
+    "workbench.editor.wrapTabs": true,
+    "workbench.editor.enablePreview": false,
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "terminal.integrated.fontSize": 14,
+    "workbench.productIconTheme": "bongocat",
+    "editor.rulers": [
+        80, 100, 120
+    ]
+}
+

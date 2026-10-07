@@ -1,0 +1,13 @@
+{
+  "exclusive": true,
+  "stages": {
+    "online": {
+      "repo_versions": {
+        "example/app-service": "1.0.0.6617"
+      },
+      "units": {
+        "CN_NORTH6": { "is_deploy": true, "all_clusters": true }
+      }
+    }
+  }
+}

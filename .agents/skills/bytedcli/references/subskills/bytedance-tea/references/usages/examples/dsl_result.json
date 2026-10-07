@@ -1,0 +1,98 @@
+{
+  "items": [
+    {
+      "trace_id": "demo-trace-id",
+      "query_id": "a00:p00:c00:q00",
+      "result_status": "SUCCESS",
+      "execute_time": 12,
+      "result_time": 1767225600000,
+      "date_index_list": ["20260101", "20260102"],
+      "data_item_list": [
+        {
+          "item_key": "demo-item-a",
+          "event_show_name": "示例事件 A",
+          "show_name": "示例事件 A",
+          "show_label": "A",
+          "origin_group_by_key": "sample-region-a",
+          "group_by_key": "sample-region-a",
+          "event_indicator_params": {},
+          "event_params": {},
+          "profile_params": {
+            "demo_country": "sample-region-a"
+          },
+          "device_params": {},
+          "common_params": {},
+          "item_params": {},
+          "group_params": [
+            {
+              "property_name": "demo_country",
+              "property_type": "profile",
+              "property_compose_type": "origin",
+              "value": "sample-region-a",
+              "origin_value": "sample-region-a"
+            }
+          ],
+          "data": [120, 150],
+          "contain_realtime": false,
+          "name": "A, sample-region-a",
+          "result_type": "events",
+          "group_by_type": "user_attr",
+          "filter_label": "1",
+          "filter_value": "sample-platform",
+          "event_label": "A",
+          "indicator_show_name": "总次数（PV）",
+          "event_name": "example.play",
+          "event_type": "origin",
+          "suffix_key": "sample-region-a",
+          "prefix_key": "A",
+          "avg": 135,
+          "sum": 270,
+          "au_query": false,
+          "virtual": false
+        },
+        {
+          "item_key": "demo-item-b",
+          "event_show_name": "示例事件 B",
+          "show_name": "示例事件 B",
+          "show_label": "B",
+          "origin_group_by_key": "sample-region-b",
+          "group_by_key": "sample-region-b",
+          "event_indicator_params": {},
+          "event_params": {},
+          "profile_params": {
+            "demo_country": "sample-region-b"
+          },
+          "device_params": {},
+          "common_params": {},
+          "item_params": {},
+          "group_params": [
+            {
+              "property_name": "demo_country",
+              "property_type": "profile",
+              "property_compose_type": "origin",
+              "value": "sample-region-b",
+              "origin_value": "sample-region-b"
+            }
+          ],
+          "data": [80, 95],
+          "contain_realtime": false,
+          "name": "B, sample-region-b",
+          "result_type": "event_users",
+          "group_by_type": "user_attr",
+          "filter_label": "1",
+          "filter_value": "1.2.3",
+          "event_label": "B",
+          "indicator_show_name": "总人数（UV）",
+          "event_name": "example.enter",
+          "event_type": "origin",
+          "suffix_key": "sample-region-b",
+          "prefix_key": "B",
+          "avg": 87.5,
+          "sum": 175,
+          "au_query": false,
+          "virtual": false
+        }
+      ]
+    }
+  ]
+}

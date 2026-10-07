@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.test/schemas/ftf/ftf-code-analysis.schema.json",
+  "title": "FTF Code Analysis Response v1",
+  "type": "object",
+  "required": ["contract_version", "status"],
+  "properties": {
+    "contract_version": {
+      "const": "ftf-code-analysis/v1"
+    },
+    "status": {
+      "enum": ["accepted", "not_applicable", "rejected"]
+    },
+    "analyzer_run": {
+      "$ref": "https://example.test/schemas/ftf/task-analysis.schema.json#/$defs/analyzerRun"
+    },
+    "reason": {
+      "const": "no_revision_delta"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "similar_diff_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+$"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "result_artifact": {
+      "$ref": "#/$defs/resultArtifact"
+    },
+    "evidence_boundary": {
+      "$ref": "https://example.test/schemas/ftf/task-analysis.schema.json#/$defs/evidenceBoundary"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "status": { "const": "accepted" }
+      },
+      "required": ["analyzer_run"],
+      "not": {
+        "anyOf": [
+          { "required": ["reason"] },
+          { "required": ["evidence_boundary"] }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "status": { "const": "not_applicable" },
+        "reason": { "const": "no_revision_delta" }
+      },
+      "required": [
+        "reason",
+        "task_id",
+        "similar_diff_id",
+        "repository",
+        "revision",
+        "result_artifact"
+      ],
+      "not": {
+        "anyOf": [
+          { "required": ["analyzer_run"] },
+          { "required": ["evidence_boundary"] },
+          { "required": ["base_ref"] },
+          { "required": ["target_ref"] }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "status": { "const": "rejected" }
+      },
+      "required": ["evidence_boundary"],
+      "not": {
+        "anyOf": [
+          { "required": ["analyzer_run"] },
+          { "required": ["reason"] }
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "resultArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "sha256"],
+      "properties": {
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

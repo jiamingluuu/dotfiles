@@ -1,0 +1,15 @@
+{
+  "repo_versions": {
+    "example/core-api": "1.0.0.5421",
+    "sample/runtime-lib": "1.0.2.619",
+    "sample/runtime-app": "1.0.1.845",
+    "demo/config-center": "1.0.8.5117",
+    "sample_conf": "1.0.0.1832",
+    "example/ops/panic-collector": "1.0.0.17"
+  },
+  "units": {
+    "CN": { "is_deploy": true },
+    "US": { "is_deploy": true },
+    "SG_LARK": { "is_deploy": true }
+  }
+}

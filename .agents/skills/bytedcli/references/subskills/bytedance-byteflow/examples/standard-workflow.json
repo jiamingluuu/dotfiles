@@ -1,0 +1,32 @@
+{
+  "Comment": "Minimal ByteFlow-compatible standard workflow example",
+  "StartAt": "Prepare",
+  "States": {
+    "Prepare": {
+      "Type": "Pass",
+      "Next": "RunTask"
+    },
+    "RunTask": {
+      "Type": "Task",
+      "Resource": "brn:byteflow:::example_app/stateMachine/example_child:startExecution.requestResponse",
+      "Parameters": {
+        "input.$": "$"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Done"
+    },
+    "Done": {
+      "Type": "Succeed"
+    }
+  }
+}
+

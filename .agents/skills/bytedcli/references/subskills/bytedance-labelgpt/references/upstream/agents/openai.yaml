@@ -1,0 +1,4 @@
+interface:
+  display_name: "LabelGPT CLI"
+  short_description: "使用 LabelGPT CLI 管理插件、Agent、Dataset 和模型"
+  default_prompt: "使用 $labelgpt-cli 将我的 LabelGPT 操作目标转换为经过 schema 校验的可执行命令。"

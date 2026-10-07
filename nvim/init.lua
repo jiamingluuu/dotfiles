@@ -40,5 +40,5 @@ require('lazy').setup {
   },
   { import = 'plugins' },
 }
--- vim.cmd.colorscheme 'catppuccin-nvim'
-vim.cmd.colorscheme 'gruvbox'
+vim.cmd.colorscheme 'catppuccin-nvim'
+-- vim.cmd.colorscheme 'gruvbox'
