@@ -1,155 +1,153 @@
-# 工作准则（全局）
+# Working Guidelines (Global)
 
-这份文件对我所有仓库里的 agent 会话生效。每条规则都附了原因；遇到规则没有覆盖的情况，按原因去判断。
+These rules apply to agent sessions in all of my repositories. Each rule comes with its reason; when a situation isn't covered, decide based on the reasons.
 
-沟通用中文；代码、命令、术语和报错保留原文。
+## 1. Clarify requirements; don't make casual assumptions
 
-## 1. 先弄清需求，不随意假设
+Going in the wrong direction costs far more than asking one more question. But trivial questions are disruptive too, so ask only when the uncertainty would affect the outcome.
 
-方向做错的代价远高于多问一句。但琐碎的问题同样会打断我，所以只在不确定性会影响结果时才问。
+**Ask first when** a different answer would change the result or cause rework:
 
-**必须先问的情况**（答案不同，结果就不同，或者会带来返工）：
+- The goal or the definition of done is unclear: what problem to solve, and how far to take it.
+- The request has several reasonable interpretations that lead to different implementations.
+- The work changes an interface, protocol, data format, or metric definition.
+- The operation is irreversible or affects others: deleting data, changing shared config, pushing, releasing, touching production.
+- You need information only I have: business context, data locations, permissions, priorities.
 
-- 目标或完成标准不清楚：要解决什么问题，做到什么程度算完成。
-- 需求有多种合理的理解，而且会导向不同的实现。
-- 涉及接口、协议、数据格式或指标口径的变更。
-- 不可逆或会影响他人的操作：删除数据、修改共享配置、push、发布、改动线上环境。
-- 需要只有我知道的信息：业务背景、数据位置、权限、优先级。
+**Decide on your own when** the detail is cheap, reversible, and covered by existing conventions in the repo, such as naming, formatting, file placement, or local implementation choices. Follow the conventions, and list what you decided under "Choices I made" in your report so I can review it.
 
-**可以自行决定的情况**：成本低、可撤销、仓库里有惯例可循的细节，例如命名、格式、文件位置、局部实现方式。按惯例处理，并在汇报里列出「我做的选择」，方便我复查。
+**Look before you ask.** If the answer can be found in the code, docs, git history, or `~/notes/kb/`, find it yourself instead of asking me. Don't assume an API, config option, file, or command exists; verify it before using it.
 
-**先查再问。** 能从代码、文档、git 历史或 `~/notes/kb/` 里查到的，先自己查，不要拿这类问题来问我。不要假设某个 API、配置项、文件或命令存在，用之前先确认。
+**How to ask:**
 
-**怎么问：**
+- At most 4 questions per round, ordered by importance.
+- For each question, explain why it matters, give the options and their trade-offs, then your recommendation and why.
+- Multiple rounds are fine. Keep asking when my answers raise new uncertainties, but make each round more focused than the last.
+- When a request is large or scattered, first help me organize it into goals / non-goals / constraints / definition of done / open questions, and point out contradictions, gaps, or simpler alternatives. Start only after I confirm.
 
-- 每轮最多 4 个问题，按重要性排序。
-- 每个问题都说明为什么重要，给出选项和各自的取舍，再给出你的推荐和理由。
-- 可以多轮。我的回答引出新的不确定时继续问，但每一轮都要比上一轮更聚焦。
-- 需求比较大或比较散时，先帮我整理成「目标 / 不做什么 / 约束 / 完成标准 / 待定问题」，并指出其中的矛盾、遗漏，或者更简单的替代做法。我确认后再动手。
+**When reality doesn't match expectations mid-task** (code structure, data, or experiment results differ from what we understood): stop, explain what you found and what it affects, and ask how to proceed. Don't switch direction on your own.
 
-**执行中发现情况和预期不符**（代码结构、数据或实验结果和之前的理解不一致）：停下来，说明发现了什么、有什么影响，再问我怎么走。不要自行换个方向继续做。
+**In reports, separate facts from inferences**: state what was verified by running, testing, or measuring, and what is speculation.
 
-**汇报时区分事实和推断**：哪些经过运行、测试或实测验证，哪些只是推测。
+## 2. Right-size the effort; don't over-engineer
 
-## 2. 适度投入，不过度工程
+Default goal: get most of the benefit with about 60% of the effort, rather than spending 90% to squeeze out the last bit. Whether the remaining effort is worth it is my call.
 
-默认目标：用大约 60% 的投入拿到大部分收益，而不是用 90% 的投入去压榨最后一点。剩下的投入值不值得，由我决定。
+**In practice:**
 
-**具体做法：**
+- **Code changes**: solve the problem with the smallest change. Don't refactor along the way; don't add abstractions, config options, generalization, or compatibility layers nobody asked for; don't design for hypothetical future needs. If you see something worth improving, mention it in your report instead of changing it.
+- **Experiments**: validate the direction with small, short experiments first (small dataset, few steps, a single GPU or instance), and scale up only once there's a signal. No broad hyperparameter sweeps unless I ask.
+- **Optimization**: profile first, find the main bottlenecks, fix the biggest one or two, and stop once returns clearly diminish.
+- **Propose the simpler path first**: if changing config, using an existing tool, or adjusting the requirement would solve the problem, say so before deciding whether to write code.
 
-- **改代码**：用最小的改动解决问题。不顺手重构；不加没被要求的抽象、配置项、通用化或兼容层；不为假想的未来需求做设计。看到值得改的地方，在汇报里提出来，不要直接改。
-- **做实验**：先用小规模、短周期的实验验证方向（小数据集、少步数、单卡或单实例），看到信号再扩大规模。除非我要求，不做大范围的超参搜索。
-- **做优化**：先 profile，找到主要瓶颈，解决最大的一两个；收益开始明显变小就停下。
-- **有更简单的路就先提**：如果改配置、用现成工具或调整需求就能解决，先说出来，再决定要不要写代码。
+**Simple doesn't mean sloppy.** Correctness, necessary tests, not breaking existing functionality, and not introducing security issues are never cut. What you save on is polish, not baseline quality.
 
-**简单不等于草率。** 正确性、必要的测试、不破坏现有功能、不引入安全问题，这些都不打折扣。要省的是锦上添花的部分，不是基本质量。
+**Stop at "good enough", then report:**
 
-**在"够好"的地方停下，然后汇报：**
+- the current result, with data;
+- further directions, each with estimated effort and expected benefit;
+- and let me decide whether to continue.
 
-- 当前结果，附数据；
-- 还能继续做的方向，每项写明预估投入和预期收益；
-- 由我决定是否继续。
+Signs of diminishing returns: the next step needs a noticeably larger change surface or more complexity for only a small gain, or the target I set has already been met.
 
-边际收益递减的信号：下一步需要明显更大的改动面或复杂度，换来的只是小幅提升；或者已经达到了我给的目标。
+**Exception**: when I explicitly ask for maximum effort (e.g., "push it to the limit", "squeeze out everything", "production-grade", "full coverage"), invest accordingly. Even then, tell me the expected effort before starting.
 
-**例外**：我明确说"做到极致""尽量压榨""生产级""全面覆盖"时，按要求投入。即便如此，开始前也先告诉我预计要投入多少。
+## 3. Build up the knowledge base
 
-## 3. 沉淀知识库
+A pitfall hit once shouldn't be hit again, and a pattern learned should inform the next decision. The knowledge base lives in `~/notes/kb/` and is shared across all repositories.
 
-踩过的坑不应该再踩第二次；得到的规律应该能指导下一次决策。知识库在 `~/notes/kb/`，所有仓库共享。
+### 3.1 Two kinds of knowledge
 
-### 3.1 两类知识
-
-| | 洞见（insights） | 踩坑（pitfalls） |
+| | Insights | Pitfalls |
 |---|---|---|
-| 内容 | 可迁移的规律和经验：什么情况下该怎么做，为什么 | 具体问题的现象、根因和解法 |
-| 价值 | 指导以后的方案选择和优先级排序 | 再遇到同样的症状时，能快速定位 |
-| 用法 | 开始相关任务前主动阅读 | 遇到报错或异常时按关键词检索 |
-| 判断标准 | 换一个相关但不同的任务，它还能帮我做决定 | 只有遇到同样的症状时才用得上 |
-| 写入方式 | 先在汇报中提议，我确认后再写 | 解决后直接写，并在汇报中告诉我 |
+| What | Transferable patterns and lessons: what to do in which situation, and why | The symptom, root cause, and fix of a specific problem |
+| Value | Guides future design choices and prioritization | Speeds up diagnosis when the same symptom shows up again |
+| Usage | Read proactively before starting related work | Search by keyword when hitting an error or anomaly |
+| Test | Would it still help me decide on a related but different task? | Is it useful only when the same symptom appears? |
+| Writing | Propose in your report; write only after I confirm | Write right after solving it, and tell me in your report |
 
-两个例子：
+Two examples:
 
-- 洞见："离线指标的提升不一定能转化为线上收益。改动涉及特征处理时，先确认离线和线上的特征口径一致，再看离线指标。"它会改变下一次实验的做法。
-- 踩坑："`ImportError: libcudart.so.12`：容器内的 CUDA 版本与 torch wheel 不匹配，换成对应 CUDA 版本的 wheel 后解决。"只有再遇到这个报错时才有用。
+- Insight: "Offline metric gains don't necessarily translate into online gains. When a change touches feature processing, first confirm that offline and online feature definitions match, then look at offline metrics." It changes how the next experiment is run.
+- Pitfall: "`ImportError: libcudart.so.12`: the CUDA version in the container didn't match the torch wheel; switching to the wheel built for that CUDA version fixed it." It is useful only when this error shows up again.
 
-**不值得记录的**：一次性的临时状态（例如某台机器某天宕机）、显而易见或官方文档里一查就有的内容、已经在代码注释或 commit message 里讲清楚的内容。
+**Not worth recording**: one-off transient states (e.g., a machine went down one day), things that are obvious or found on the first page of the official docs, and things already explained in code comments or commit messages.
 
-### 3.2 目录结构
+### 3.2 Layout
 
 ```text
 ~/notes/kb/
-├── README.md            # 索引：每个文件一行说明。先读它，再决定读哪些文件
-├── insights/<主题>.md   # 如 experiment-design.md、inference-perf.md
-└── pitfalls/<主题>.md   # 如 cuda-env.md、build.md、<服务名>.md
+├── README.md            # Index: one line per file. Read this first, then decide which files to open
+├── insights/<topic>.md  # e.g., experiment-design.md, inference-perf.md
+└── pitfalls/<topic>.md  # e.g., cuda-env.md, build.md, <service-name>.md
 ```
 
-按主题分文件，不按日期分。新建文件时同步更新 `README.md`。
+Organize files by topic, not by date. Update `README.md` whenever you add a file.
 
-### 3.3 条目格式
+### 3.3 Entry formats
 
-踩坑：
+Pitfall:
 
 ```markdown
-### <一句话描述症状，包含报错原文或便于检索的关键词>
-- 场景：<日期>，<仓库/服务，环境与版本>
-- 现象：<报错原文，或可观察到的表现>
-- 根因：<为什么会这样>
-- 解法：<具体的命令、配置或代码改动>
-- 适用条件：<在什么版本或环境下成立，什么情况下可能失效>
+### <One-line symptom, including the error text or searchable keywords>
+- Context: <date>, <repo/service, environment and versions>
+- Symptom: <error text or observable behavior>
+- Root cause: <why it happens>
+- Fix: <the exact commands, config, or code changes>
+- Applies when: <versions or environments where this holds; when it may stop applying>
 ```
 
-洞见：
+Insight:
 
 ```markdown
-### <一句话结论>
-- 结论：<规律本身，以及它能指导什么决策>
-- 依据：<哪些经历或数据支持它；链接相关的踩坑条目或实验记录>
-- 适用范围：<什么情况下成立；已知的反例>
-- 记录于：<日期>｜最近验证：<日期>
+### <One-line conclusion>
+- Conclusion: <the pattern itself, and which decisions it informs>
+- Evidence: <experiences or data that support it; links to related pitfall entries or experiment records>
+- Scope: <when it holds; known counterexamples>
+- Recorded: <date> | Last verified: <date>
 ```
 
-### 3.4 什么时候读，什么时候写
+### 3.4 When to read and when to write
 
-- **开始任务时**：读 `~/notes/kb/README.md`，再读和任务主题相关的 insights 文件。
-- **遇到报错或异常时**：先用报错关键词 grep `~/notes/kb/pitfalls/`，没有结果再自己排查。
-- **解决一个坑之后**：如果它需要多轮尝试才定位，或者根因反直觉，立即按格式写入 pitfalls。
-- **任务收尾时**：回顾这次有没有得到可迁移的规律。有的话，在汇报末尾列为「建议沉淀的洞见」，我确认后再写入 insights。
+- **When starting a task**: read `~/notes/kb/README.md`, then the insights files relevant to the task.
+- **When hitting an error or anomaly**: first grep `~/notes/kb/pitfalls/` for the error keywords; investigate on your own only if nothing turns up.
+- **After solving a problem**: if it took several attempts to pin down, or the root cause was counterintuitive, write it to pitfalls right away using the format above.
+- **When wrapping up**: consider whether this task produced a transferable pattern. If so, list it at the end of your report under "Suggested insights", and write it to insights only after I confirm.
 
-### 3.5 维护
+### 3.5 Maintenance
 
-- 写之前先搜索有没有相似条目。有就更新原条目，补充新的场景或版本，不要重复记录。
-- 发现条目过时或错误时：踩坑条目直接更正，并注明更正日期；洞见条目先提议修改。
-- 几个踩坑反映出同一个规律时（例如几次排查最后都归结到离线和线上特征口径不一致），提议把它升级为一条洞见，并在洞见的「依据」里链接这些踩坑条目。
-- 不写入密钥、token、账号密码或其他敏感数据。
+- Search for similar entries before writing. If one exists, update it with the new context or version instead of adding a duplicate.
+- When an entry is outdated or wrong: correct pitfall entries directly and note the correction date; propose changes to insight entries first.
+- When several pitfalls point to the same pattern (e.g., several investigations all traced back to mismatched offline and online feature definitions), propose promoting it to an insight, and link those pitfall entries under the insight's "Evidence".
+- Never write keys, tokens, account passwords, or other sensitive data.
 
-## 4. OKR 进展记录
+## 4. OKR progress tracking
 
-我的 OKR 记录在 `~/notes/okr/2026Q4/`：`okr.md` 是目标定义（只读），`progress.md` 是各 KR 的当前状态与下一步，`log/` 是按周追加的日志。更新流程和格式见 `okr-update` skill。
+My OKR records live in `~/notes/okr/`; the exact directory for the current cycle is `OKR_DIR` in the `okr-update` skill. There, `okr.md` holds the objective definitions (read-only), `progress.md` holds each KR's current status and next steps, and `log/` holds weekly append-only logs. The update procedure and formats are in the `okr-update` skill.
 
-1. **开工前**：接到非琐碎任务时，先读 `progress.md` 的「总览」表，判断任务是否对应某个 KR。如果对应，再读该 KR 小节的「下一步」和「风险/阻塞」作为工作上下文；如果我要你做的事和记录里的下一步有冲突，先指出来。
-2. **收尾时**：完成一项与 KR 相关的工作、准备向我汇报时，按 `okr-update` skill 的「会话收尾」流程更新记录。满足以下任一条件就要更新：
-   - 推进了某个 KR 的产出或指标；
-   - 做出了影响方案的决定；
-   - 发现了新的风险或阻塞；
-   - 下一步计划变了。
+1. **Before starting**: for any non-trivial task, read the "Overview" table in `progress.md` and decide whether the task maps to a KR. If it does, also read that KR's "Next steps" and "Risks/blockers" as working context. If what I'm asking for conflicts with the recorded next steps, point that out first.
+2. **When wrapping up**: when you finish KR-related work and are about to report back, update the records following the "session wrap-up" procedure in the `okr-update` skill. Update if any of the following holds:
+   - you advanced a KR's output or metric;
+   - you made a decision that affects the approach;
+   - you found a new risk or blocker;
+   - the next-step plan changed.
 
-   我说「收尾」或「记一下」时，同样执行。
-3. **不记**：与 OKR 无关的工作、没有结论的探索、琐碎修改。拿不准时，在汇报末尾问我「这次要记到哪个 KR 吗？」，不要自行归类。
-4. **底线**：只记录有证据的事实，没验证的写成"未验证"；不修改 `okr.md`；不在记录里写密钥或凭证。
-5. 如果无法调用 skill，直接读取 `~/.claude/skills/okr-update/SKILL.md`（Codex 为 `~/.agents/skills/okr-update/SKILL.md`）并照做。
+   Do the same when I say "wrap up" or "note this down".
+3. **Don't record**: work unrelated to the OKRs, explorations without conclusions, or trivial edits. If unsure, ask me at the end of your report which KR it should go under; don't classify it yourself.
+4. **Ground rules**: record only facts backed by evidence, and mark anything unverified as "unverified"; don't modify `okr.md`; never write keys or credentials into the records.
+5. If you can't invoke the skill, read `~/.claude/skills/okr-update/SKILL.md` directly (for Codex: `~/.agents/skills/okr-update/SKILL.md`) and follow it.
 
-## 5. 开工与收尾清单
+## 5. Start and wrap-up checklist
 
-**开工时**（琐碎任务可以跳过第 1 步）：
+**When starting** (step 1 can be skipped for trivial tasks):
 
-1. 读 `~/kb/README.md` 和相关的 insights 文件（第 3 节）；读 OKR 记录中 `progress.md` 的「总览」，判断任务是否对应某个 KR（第 4 节）。
-2. 判断需求是否清楚，不清楚就先问（第 1 节）。
+1. Read `~/notes/kb/README.md` and the relevant insights files (Section 3); read the "Overview" table in the OKR `progress.md` and decide whether the task maps to a KR (Section 4).
+2. Check whether the request is clear; if not, ask first (Section 1).
 
-**收尾汇报时**，依次包含以下内容（没有就省略该项）：
+**When reporting at wrap-up**, include the following in order (omit any item with nothing to report):
 
-1. **结果**：做了什么；哪些已验证，哪些是推断。
-2. **我做的选择**：自行决定的细节。
-3. **可以继续的方向**：每项的预估投入和预期收益（第 2 节）。
-4. **知识库**：本次写入的踩坑条目；建议沉淀的洞见（第 3 节）。
-5. **OKR**：记录改了什么（第 4 节）。
+1. **Result**: what was done; what was verified and what is inferred.
+2. **Choices I made**: details you decided on your own.
+3. **Further directions**: estimated effort and expected benefit for each (Section 2).
+4. **Knowledge base**: pitfall entries written this time; suggested insights (Section 3).
+5. **OKR**: what changed in the records (Section 4).
