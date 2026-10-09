@@ -1,5 +1,9 @@
 #!/bin/sh
 set -eu
+case "$#:${1-}" in
+    0:|1:--agents-only) ;;
+    *) printf 'Usage: %s [--agents-only]\n' "$0" >&2; exit 1 ;;
+esac
 cd "$HOME/dotfiles"
 
 link_path() {
@@ -26,12 +30,14 @@ link_path() {
     printf 'Linked %s -> %s\n' "$target" "$source"
 }
 
-link_path .zshrc .zshrc
-link_path .vimrc .vimrc
-for config in zed wezterm nvim tmux alacritty; do
-    link_path "$config" ".config/$config"
-done
-link_path jj/config.toml .config/jj/config.toml
+if [ "${1-}" != --agents-only ]; then
+    link_path .zshrc .zshrc
+    link_path .vimrc .vimrc
+    for config in zed wezterm nvim tmux alacritty; do
+        link_path "$config" ".config/$config"
+    done
+    link_path jj/config.toml .config/jj/config.toml
+fi
 
 # Link configuration only; leave credentials, sessions and caches in place.
 for config in AGENTS.md config.toml keybindings.json agents hooks hooks.json rules; do

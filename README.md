@@ -2,7 +2,7 @@
 
 Run `~/dotfiles/install.sh` to install everything. The script uses fixed paths
 under `~/dotfiles`, `~/.config`, `~/.codex`, `~/.claude` and `~/.agents`;
-it has no command-line options or environment overrides.
+pass `--agents-only` to install only Codex, Claude and shared agent configs.
 Existing targets are renamed to `.backup`, `.backup.1`, etc. Codex skill backups
 go under `~/.codex/dotfiles-backups/skills/` to avoid duplicate skill discovery.
 Already-correct symlinks are left alone, so repeated runs make no changes.
