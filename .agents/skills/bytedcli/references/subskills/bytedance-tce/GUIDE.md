@@ -1,6 +1,6 @@
 ---
 name: bytedance-tce
-description: "Operate TCE via bytedcli: list/search/get/create/update/delete services, list/create/update/scale/reset clusters, list/search instances, migrate instances via instance delete, force-delete instances, and download allowed CN instance files (logs/core), list/get/cancel/action deployments, env cascader, deploy lane. Use when tasks mention TCE services, clusters, deployments, environment queries, or downloading files/logs/core from a TCE instance."
+description: "Use when tasks mention TCE services/clusters/instances, deployments/lanes, environment queries or instance file/log/core downloads. Use bytedcli: service list/search/get/create/update/delete; cluster list/create/update/scale/reset; instance list/search, migrate via delete, force-delete only on explicit request; allowed CN file/log/core downloads; deployment list/get/cancel/actions; env cascader; lane deploy."
 ---
 
 # bytedcli TCE

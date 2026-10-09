@@ -1,6 +1,6 @@
 ---
 name: bytedance-es
-description: "Query Elasticsearch via Kibana console API: execute ES DSL queries, search indices, and retrieve documents. Get ES index mapping. Submit ES index mapping update tickets with automatic field deletion detection. Use when tasks mention ES, Elasticsearch, Kibana queries, mapping changes, or log/data search."
+description: "Use Elasticsearch/ES Kibana console for DSL queries, index/log/data search, documents and index mappings; submit mapping-update tickets with automatic field-deletion detection."
 ---
 
 # bytedcli ES

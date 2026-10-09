@@ -1,6 +1,6 @@
 ---
 name: bytedance-dorado
-description: "Operate Dorado (DataLeap) via bytedcli: projects, tasks, instances, task/node lifecycle, SQL updates and adhoc queries/DDL/INSERT, drafts, dependencies, HPSensors, demand work-item discovery/gates/bindings, deploy packages, validation, notebooks, folders, backfills, DECC, resources, Flink, and Spark History diagnosis. Use for Dorado/DataLeap tasks, adhoc SQL/DDL/INSERT, demand or work-item relations, submit gates, dependencies, owners, deploy review, HSQL/DTS drafts, notebook debugging, task URLs, instance failures, slow runs, backfills, spark-jar configuration, Flink logs, or DECC."
+description: "Use bytedcli Dorado/DataLeap for projects, task/node lifecycle, instances/failures/slow runs, SQL updates or adhoc SQL/DDL/INSERT, HSQL/DTS drafts, dependencies/owners/HPSensors, demand/work-item discovery/gates/bindings, deploy packages/review/validation, notebook debugging, folders, backfills, DECC/resources, spark-jar configuration, Flink logs and Spark History diagnosis. Also accepts task URLs."
 ---
 
 # bytedcli Dorado
@@ -487,6 +487,8 @@ bytedcli dorado task rerun <task-id> --project-id <project-id> --region sg \
 bytedcli dorado task review-policy --task-id <task-id> --project-id <project-id> --region <region>
 bytedcli dorado task online <task-id> --project-id <project-id> --region <region>
 bytedcli dorado task online <task-id> --project-id <project-id> --region <region> --idempotency-key demo-online-20260916
+# 显式跳过“上游依赖未上线”和“多个任务写同一分区”检查；SQL 检查始终保留：
+bytedcli dorado task online <task-id> --project-id <project-id> --region <region> --skip-check
 
 # 只读诊断任务身份/权限与当前 runtime
 # identity: 展示任务 owner / project / 配置的 PSM / source topic/group / sink topic，并可对显式 principal 做只读 IAM permission check；runtime principal 证明不了时保持 unknown
@@ -1071,7 +1073,7 @@ bytedcli dorado adhoc exec "SELECT count(*) FROM db.table" --task-id 1000252    
 bytedcli dorado adhoc exec "SELECT 1" --task-id 1000252 --queue auto --region sg                 # 动态探测并自动选择最低负载队列
 bytedcli dorado adhoc exec "SELECT * FROM db.table LIMIT 10" --task-id 1000252 -o result.csv     # 等待完成并下载 CSV
 bytedcli dorado adhoc exec "SELECT * FROM db.table" --task-id 1000252 --queue auto --dry-run     # Dry Run 预览执行计划与队列分流
-DORADO_DORIS_EXEC_TASK_ID=123456789 bytedcli dorado adhoc exec "SELECT 1" --engine-type doris_sql --project-id 123 --region cn --no-wait  # Doris SQL，异步提交并返回 debugId
+DORADO_DORIS_EXEC_TASK_ID=123456789 bytedcli dorado adhoc exec "SELECT 1" --engine-type doris_sql --project-id 123 --region cn --no-wait  # Doris SQL，异步提交并返回 Debug ID（JSON 里是 `jobId`）
 # 注意：dorado adhoc exec 在 Hive SQL 路径下，默认无条件注入 `executor.disableManta=true` 以抑制 Manta 监控，不提供 CLI 开关
 # 因为 ad-hoc 查询本质是实验性调试，默认不希望在 Manta 上产生 test_check 结果
 
@@ -1081,7 +1083,7 @@ bytedcli dorado adhoc exec --file ./create_table.sql --task-id 1000252 --region 
 
 # 临时查询 — 复杂 SQL（异步提交，稍后查询）
 # ⚠️ SQL 含 `--` 开头的注释（hsql 标准注释）时，优先通过 `--file <path>` 传参，避免 shell 参数转义干扰
-bytedcli dorado adhoc exec "复杂SQL" --task-id 1000252 --no-wait                                 # 异步提交，返回 debugId
+bytedcli dorado adhoc exec "复杂SQL" --task-id 1000252 --no-wait                                 # 异步提交，返回 Debug ID（JSON 里是 `jobId`）和 webUrl（载体任务的页面，交给用户在浏览器里看运行进度；不要自己拼 URL）
 bytedcli dorado adhoc status --debug-id 12977673 --task-id 1000252                               # 查询状态
 bytedcli dorado adhoc log --debug-id 12977673 --task-id 1000252                                  # 查看运行日志
 bytedcli dorado adhoc result --debug-id 12977673 --task-id 1000252                               # 展示结果
@@ -1216,7 +1218,7 @@ If the built-in region list does not cover the target IDC/region, prefer adding 
   查看服务端状态；成功响应后不自动追加 check
 - `folder structure` 默认显示任务开发目录（root-id=-1），可用 `--root-id -2` 查看临时查询目录
 - `folder create` 在指定项目下创建子目录，`--parent-uri` 为父目录 URI（如 `task:///HrdNGPWr`），可用 `tree-nodes children` 命令获取，`--name` 为新目录名称，可选 `--description` 添加描述
-- `node create/get/save/submit/submit-approval` 适用于 python、notebook 和 spark（含 pyspark）任务；`node start/kernel-status` 适用于 python/notebook kernel，`node debug-cell` 适用于 notebook cell；hsql/fsql/stream_sql 等 SQL 草稿使用 `task-draft update`
+- `node create/get/save` 适用于 python、notebook 和 spark（含 pyspark）任务；`node submit/submit-approval` 还支持已有的 HSQL node；`node start/kernel-status` 适用于 python/notebook kernel，`node debug-cell` 适用于 notebook cell；HSQL 草稿内容仍使用 `task-draft update`
 - `node create` 返回 nodeId（字符串）；需要 taskId 时，用 `node relation --node-id <nodeId>` 查询对应关系，再用 taskId 调用 `get-task`、`list-instances` 等命令
 - `node relation` 支持批量查询，多个 nodeId 用逗号分隔；响应中 taskId 与 nodeId 按顺序一一对应
 - 仅有 taskId、需要 IDE nodeUid 时，用 `node resolve-uid`（通过 tree-nodes 的 name+type filter 单路径下钻 + node-relations 校验）
@@ -1257,7 +1259,7 @@ If the built-in region list does not cover the target IDC/region, prefer adding 
 - `task update-conf --type <type>` 可选地覆盖 batch / DTS 草稿顶层 `type`，专为“先用通用壳子创建、再升级到具体 DTS 子类型”的场景设计；realtime stream draft 不支持这个覆盖，不设置时保留 server 上现有 `type`
 - `task-draft update` 支持更新队列、集群、调度时间、SQL 代码、任务依赖、跨区域查询配置、DTS 读写配置等
 - `task-draft update --schedule-type` 推荐使用语义值 `manual`（手动调度）或 `cyclical`（周期调度）；兼容数字码 `1`/`2` 与周期调度别名 `cycle`/`periodic`，统一写成草稿枚举 `manual` / `time_task_schedule`，其它字符串原样透传
-- `task-draft update` 支持小时调度字段；日调度可继续传 `--schedule-time 00:00`，小时调度请按页面原始值传 `--schedule-time <minute>` 与 `--schedule-day <value>`（例如 `--schedule-time 5 --schedule-day 16`）
+- `task-draft update` 支持小时调度字段；日调度可继续传 `--schedule-time 00:00`，小时调度请按页面原始值传 `--schedule-time <minute>` 与 `--schedule-day <value>`（例如 `--schedule-time 5 --schedule-day 16`）。小时调度的 `--schedule-day` 是 cron 的小时字段：小时取 0–23、不带空格，如 `16`、`0,6,12,18`、`0-23`、`*/2`、`*`，不合法时保存前就报 `DORADO_INPUT_ERROR`。macOS 上 `seq -s, 0 23` 的输出末尾多一个逗号，不要直接拿来当 `--schedule-day`；全天每小时传 `*` 或 `0-23`。保存后会回读草稿；Dorado 读不回来时，CLI 把草稿恢复成更新前的样子并报 `DORADO_DRAFT_UNREADABLE`（`details.restored: true`，本次更新不生效），不会返回 success。恢复也失败时 `details.restored` 为 `false`，更新前的草稿写在 `details.previous_draft_file`，按 hint 用 `task-draft save <taskId> --payload-file <file>` 存回；回读因网络或登录失败时报 `DORADO_DRAFT_UNVERIFIED`（更新已保存但没核对，先用 `task get` 看草稿能不能读）
 - `task-draft update --input-params` 持久化更新「调度设置-任务输入参数」，接受完整 JSON 数组并全量替换现有输入参数；系统参数保留 `taskId` / `projectId` / `value` 等 Dorado 返回字段，自定义参数使用 `name` / `paramValue` / `type=task_custom`。注意它不同于 `task-draft test --input-params`，后者只用于本次 debug run，固定字段是 `name` / `debugVal` / 可选 `type`
 - realtime stream 任务（如 `kafka2clickhouse`、`stream_channel_*`，或草稿 `conf.typeGroup=stream`）在 `task online` 时自动走 `PUT /realtime/{taskId}/online`，在 `task commit` 时自动走 `PUT /realtime/{taskId}/commit`；`task commit-approval` 不再自行探测，而是直接使用 `task approval diagnose` 返回的 `submission_mode`
 - `task online` 对标准 realtime 路径只做一次写请求。若出现 transport timeout / 未知响应，CLI 只做有界只读 reconciliation：没有后端可正相关的因果证据时，一律保持 `pending` 或 `unknown`；即使看到了新 log / 新版本，也只作为 observed runtime 单独回传，不自动升级成成功

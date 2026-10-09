@@ -1,6 +1,6 @@
 ---
 name: bytedance-neptune
-description: "Operate Neptune via bytedcli: list sites/zones and service deployment units; inspect upstream callers, downstream callees, service framework, security, ACL, lanes, and lane resources; submit strict authorization applications; and query exact OpenAPI rules for strict authorization, MTLS, timeout, retry, circuit breaking, drop percentage, adaptive breaking, instance or cluster rate limits, redirect, IDC traffic, load balancing, and preferred address. Use for Neptune governance, call-chain or service-dependency queries such as who calls a service or which services it calls, service framework or language, deployment zones or clusters, ACL, strict authorization, MTLS, timeout, retry, circuit breaker, traffic drop, adaptive breaker, rate limit, redirect, IDC scheduling, load-balancing policy, preferred address, IP version, stability, dispatch, security, or lane tasks."
+description: "Use bytedcli Neptune for service callers/callees/dependencies, framework/language, deployment sites/zones/clusters, security/ACL, lanes/resources and strict-authorization applications. Query exact governance OpenAPI rules: strict auth/MTLS, timeout/retry/circuit breaker/drop percentage/adaptive breaker, instance/cluster rate limits, redirect, IDC traffic/scheduling, load balancing, preferred address/IP version, stability and dispatch."
 ---
 
 # bytedcli Neptune

@@ -411,6 +411,30 @@ bytedcli --json eopsx guard role list --system-id <id> --env-id <id>
 bytedcli --json eopsx guard perm list --system-id <id> --env-id <id>
 ```
 
+CLI/Skill 资源使用现有 source CRUD 命令，资源类型分别为 `cli` 和 `skill`：
+
+```bash
+bytedcli --json eopsx guard source create \
+  --system-id <id> --env-id <id> --source-type cli \
+  --cli-name "Sample CLI resource" --cli-menu-id <menu_id> \
+  --cli-account-type all \
+  --cli-keys "bytedcli eopsx guard source list,bytedcli eopsx guard source get"
+
+bytedcli --json eopsx guard source update \
+  --system-id <id> --env-id <id> --source-id <source_id> --source-type skill \
+  --skill-name "Sample Skill resource" --skill-menu-id <menu_id> \
+  --skill-account-type master --skill-keys "api-to-cli"
+
+bytedcli --json eopsx guard source get \
+  --system-id <id> --env-id <id> --source-id <source_id> --source-type cli
+
+bytedcli --json eopsx guard source delete \
+  --system-id <id> --env-id <id> --source-id <source_id> --source-type skill
+```
+
+`perm source-relation-update` replaces the complete permission-source relation set. Pass every relation that must remain, including `--cli-source-ids` and `--skill-source-ids`; omitted resource types are cleared. The current backend `get_perm_source_list` implementation may omit CLI/Skill (`source_type=4/5`) during readback, so do not use an incomplete response as the input to a replacement update until the backend fix is deployed.
+`env change-table-get --publish-id 0` means the current environment's unpublished change table. Other publish endpoints, including `env publish-info-get` and `env publish-change-list-get`, require `--publish-id` to be greater than 0.
+
 CN → BOE 全量同步使用显式目标确认，默认 dry-run：
 
 ```bash

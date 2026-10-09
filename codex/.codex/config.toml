@@ -1,51 +1,212 @@
-model = "gpt-5.6-sol"
-model_reasoning_effort = "high"
-plan_mode_reasoning_effort = "xhigh"
+sandbox_mode = "workspace-write"
 
-approvals_reviewer = "auto_review"
-web_search = "live"
+notify = ["/Users/bytedance/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
 
-[agents]
-enabled = true
-max_concurrent_threads_per_session = 5
-default_subagent_model = "gpt-5.6-terra"
-default_subagent_reasoning_effort = "medium"
+[sandbox_workspace_write]
+writable_roots = [
+  "/Users/bytedance/notes",
+  "/Users/bytedance/notes/.git",
+  "/Users/bytedance/.codex/automations/evening-notes-sync"
+]
+network_access = true
 
-[projects."/Users/q/Documents/code/cs336-lm-from-scratch"]
+model = "gpt-6-astra"
+model_reasoning_effort = "xhigh"
+service_tier = "default"
+
+[projects."/Users/bytedance/cs336-lm-from-scratch"]
 trust_level = "trusted"
 
-[projects."/Users/q/nano-vllm"]
+[projects."/Users/bytedance/email"]
 trust_level = "trusted"
 
-[projects."/Users/q/test"]
+[projects."/Users/bytedance/.byted-ide"]
 trust_level = "trusted"
 
-[projects."/Users/q/YingLiu"]
+[projects."/Users/bytedance/Documents/Codex/2026-09-16/bagnw"]
 trust_level = "trusted"
 
-[projects."/Users/q/ml-learning"]
+[projects."/Users/bytedance/Documents/Codex/2026-09-16/xian"]
 trust_level = "trusted"
 
-[hooks.state]
+[projects."/Users/bytedance/Documents/Codex/2026-09-17/z"]
+trust_level = "trusted"
 
-[hooks.state."/Users/q/.codex/hooks.json:stop:0:0"]
-trusted_hash = "sha256:5e31797632c4080e5186e79fb666b97c88064e90e02df383330b8e9cc1868736"
+[projects."/Users/bytedance/Documents/Codex/2026-09-17/qing"]
+trust_level = "trusted"
 
-[tui.model_availability_nux]
-"gpt-5.5" = 1
-"gpt-5.6-sol" = 4
+[projects."/Users/bytedance/Documents/Codex/2026-09-17/qi"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-18/wo-me"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-18/style-amodei-mode-technical-writing-you"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-18/bei"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-18/wo-me-2"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-18/new-chat"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-21/qing"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-21/wo-zh"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-21/wo-me-m"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-21/zhe-f"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-21/qing-2"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-22/dui"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-22/qing"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-22/ple"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-22/wome"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-22/wow"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-22/qu-b"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-22/qing-w"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/notes"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-23/qing-ba"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-23/bang-w"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-23/zhe-g"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-28/qing"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-28/wh"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-28/wome"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-28/dang"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-28/xun-li"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-28/6741357"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-28/6741357-2"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-28/cong"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-29/wom"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-30/lo-ca"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-09-30/ji"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-01/what"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-01/new-chat"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-01/pilot-sma-timeline-h2d-h2d-4"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-01/qing-b"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-05/wo"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Downloads/ai6101-a1"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-06/i-x20"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-06/sheng"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-07/nine"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-07/let-s-set-up-a-scheduled"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-07/plea"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-07/you-are-running-unattended-as-a"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-08/you-are-running-unattended-as-a"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-08/wo-m"]
+trust_level = "trusted"
+
+[projects."/Users/bytedance/Documents/Codex/2026-10-08/bang-wo"]
+trust_level = "trusted"
+
+[desktop]
+followUpQueueMode = "steer"
+conversationDetailMode = "STEPS_COMMANDS"
+ambient-suggestions-enabled = true
+open-link-in-target-preference = "external-browser"
+open-local-url-in-target-preference = "external-browser"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-08-04T02:56:12Z"
 source_type = "local"
-source = "/Users/q/.codex/.tmp/bundled-marketplaces/openai-bundled"
+source = "/Users/bytedance/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-08-14T08:30:40Z"
 source_type = "local"
-source = "/Users/q/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+source = "/Users/bytedance/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+
+[plugins."codex-app-tools@openai-bundled"]
+enabled = true
 
 [plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."unified-computer-use@openai-bundled"]
+enabled = true
+
+[plugins."computer-use@openai-bundled"]
+enabled = true
+
+[plugins."visualize@openai-bundled"]
 enabled = true
 
 [plugins."documents@openai-primary-runtime"]
@@ -63,41 +224,30 @@ enabled = true
 [plugins."template-creator@openai-primary-runtime"]
 enabled = true
 
-[plugins."sites@openai-bundled"]
+[plugins."chrome@openai-bundled"]
 enabled = true
-
-[plugins."visualize@openai-bundled"]
-enabled = true
-
-[desktop]
-followUpQueueMode = "queue"
-dock-icon-preference = "codex-system"
-conversationDetailMode = "STEPS_PROSE"
-
-[features]
-js_repl = false
-goals = true
-hooks = true
 
 [mcp_servers.node_repl]
 args = []
-command = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node_repl"
+command = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node_repl"
 startup_timeout_sec = 120
 
 [mcp_servers.node_repl.env]
 NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
-NODE_REPL_NODE_MODULE_DIRS = "/Applications/Codex.app/Contents/Resources/cua_node/lib/node_modules"
-NODE_REPL_NODE_PATH = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node"
-NODE_REPL_TRUSTED_CODE_PATHS = "/Users/q/.codex"
-CODEX_HOME = "/Users/q/.codex"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "028a14b6eaa6d98dac2aae00764345ab9f244801ed8493d42b9af3be5575006e,f204d340535055781952b10ed396de20b842f00a19e430852f7e121ad1ce91f6"
+NODE_REPL_NODE_MODULE_DIRS = "/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
+NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/bytedance/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
+CODEX_HOME = "/Users/bytedance/.codex"
 BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
-NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
-NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
-NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
+BROWSER_USE_TINYSKY_ENABLED = "1"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = ""
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = ""
+NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = ""
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.727.51351"
-CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
+BROWSER_USE_CODEX_APP_VERSION = "26.915.31945"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/bytedance/.codex/plugins/cache/openai-bundled/browser/26.915.31945/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+SKY_CUA_SERVICE_PATH = "/Users/bytedance/.codex/computer-use/Codex Computer Use.app"
+CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
 [mcp_servers.computer-use]
 command = "./Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient"
@@ -105,7 +255,21 @@ args = ["mcp"]
 cwd = "."
 enabled = false
 
-[shell_environment_policy.set]
-BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "028a14b6eaa6d98dac2aae00764345ab9f244801ed8493d42b9af3be5575006e,f204d340535055781952b10ed396de20b842f00a19e430852f7e121ad1ce91f6"
-NODE_REPL_TRUSTED_CODE_PATHS = "/Users/q/.codex"
+[mcp_servers.bytedcli]
+command = "npx"
+args = ["-y", "@bytedance-dev/bytedcli@latest", "mcp"]
+
+[mcp_servers.bytedcli.env]
+NPM_CONFIG_REGISTRY = "http://bnpm.byted.org"
+
+[mcp_servers.bytedcli.tools.list_commands]
+approval_mode = "approve"
+
+[mcp_servers.bytedcli.tools.run_command]
+approval_mode = "approve"
+
+[tui]
+screen_reader_detection_done = true
+
+[tui.model_availability_nux]
+gpt-6-astra = 2

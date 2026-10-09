@@ -1,6 +1,6 @@
 ---
 name: bytedance-duty
-description: "Inspect Duty plan rosters and current oncall state, replace candidate assignments, or update one duty group’s rotation period and fixed active range through bytedcli. Invoke whenever tasks mention Duty、值班计划、候选组、值班人、当前 Oncall、排班成员查询、候选人调整、执行周期或执行起止时间。"
+description: "Use bytedcli Duty for 值班计划/候选组 rosters, 值班人/当前 Oncall, candidate reassignment, and one duty group's rotation period or fixed active range (执行周期/起止时间)."
 ---
 
 # Duty CLI

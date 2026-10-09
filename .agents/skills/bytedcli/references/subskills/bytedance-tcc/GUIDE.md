@@ -1,6 +1,6 @@
 ---
 name: bytedance-tcc
-description: "Operate TCC via bytedcli: list/search/get namespaces, list/create/delete environments, list/get/decrypt/diff config versions, create/update/deploy configs, manage exact multi-region consistency whitelist entries, list directories, import base config, apply namespace permissions, and inspect metadata. Use when tasks mention TCC or config center."
+description: "Use bytedcli TCC/config center for namespace lookup, environment list/create/delete, config versions/decryption/diffs, config creation/update/deployment, exact multi-region consistency whitelist entries, directories, base-config import, namespace permission applications and metadata."
 ---
 
 # bytedcli TCC
@@ -162,6 +162,7 @@ v2 非 prod 的推荐流程：
   - `--access` 映射 TCC 角色：`read->tcc.ns_viewer`、`write->tcc.ns_operator`、`admin->tcc.ns_owner`；也可用 `--role` 直接指定角色（覆盖 `--access`）
   - `--approver <username...>` 覆盖默认负责人；`--username` 覆盖申请人；`--dry-run` 只打印请求体不提交
   - namespace 入参支持直接给名字，或给 `https://<host>/tcc/namespace/<name>` 形式的控制台 URL
+- 任意 `tcc` 命令报 `TCC_PERMISSION_DENIED`（后端原文通常是 `Unauthorized Error logid:...`）：这次请求用的身份在该 namespace 下没有角色，或角色（`details.role`）权限不够，不是登录过期。TCC 返回调用身份时放在 `details.caller.user_name`；如果请求不是以你本人身份发出（用了 app 凭据或 JWT 覆盖），加全局 `--as user` 以本人身份重试。JSON 错误的 `details.rs_owners` 列出 namespace 负责人（最多 20 个，总数见 `rs_owners_total`），`hint` 会点名前几位。可以直接找负责人授权，或带上与原命令相同的 `--site` / `--env` 提交申请：`bytedcli --site us-ttp tcc permission apply "demo.namespace" --access read --reason "Need config access"`（已有只读角色、要改配置时用 `--access write`）
 - 需要结构化输出加 `--json`（全局选项，放在子命令之前，如 `bytedcli --json tcc config list "namespace" --region CN ...`）
 - `tcc config create` 需要显式传 `--description`；TCC Web 创建接口要求 description 非空，CLI 会先在本地校验
 - `tcc config create` 的 `--data-type` 默认值是 `yaml`，CLI 不会根据 `--value` / `--file` 内容自动识别类型。**调用 `tcc config create` 之前，必须先根据待写入内容推断 data type，并显式传入 `--data-type`**：

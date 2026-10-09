@@ -6,8 +6,7 @@
     "ab_solidified_version": false,
     "proxy_ab_id": 0,
     "deploy_template_id": 1001,
-    "allow_list": null,
-    "support_harmony_os": false
+    "allow_list": null
   },
   "item_id": "123456",
   "template_id": 1001,
@@ -20,7 +19,6 @@
   "commit_msg": "sample review create",
   "skip_reason": "sample skip reason",
   "is_ab_quick_solid": false,
-  "support_harmony_os": false,
   "isSkipUt": 1,
   "version_type": 1
 }

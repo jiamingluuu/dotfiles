@@ -1,6 +1,6 @@
 ---
 name: bytedance-bits
-description: "Operate BITS DevOps platform via bytedcli: route Dev Task creation to the BITS-official bits-devops-dev-task skill and BITS repository-activity branch-creator lookups to Codebase; inspect Zhongkui static-analysis tasks and issue locations; inspect, wait for, export, and pass one exact CaseId + MinderId leaf in AutoCase/Verse scenario-plan manualTask runs; import TCC configs, run pipelines, manage client pipeline marketplace compile jobs (bits compile-job), manage merge requests including host-sub MR, trigger component upgrades, query client workflow/integration/calendar OpenAPI surfaces; trigger and track client custom package builds, generate AI test cases, update lanes, bind branches, manage releases, upgrade existing TCE clusters in PPE/BOE envs, authorize/register Android or iOS AppUse/AirBuild debug devices and debug Anywheredoor/任意门 proxy capture, and manage interface-test test sets."
+description: "Use bytedcli BITS DevOps for Zhongkui static-analysis issues; AutoCase/Verse manualTask CaseId+MinderId leaf inspect/wait/export/pass; TCC imports, pipelines/compile-job, MR management (including host-sub), component upgrades, client workflow/integration/calendar OpenAPI, custom package builds, AI test cases, lane/branch bindings, releases and PPE/BOE TCE cluster upgrades; Android/iOS AppUse/AirBuild device authorization/registration, Anywheredoor/任意门 capture and interface-test sets. Also routes Dev Task creation to BITS-official bits-devops-dev-task and repository-activity branch-creator lookup to Codebase."
 ---
 
 # bytedcli BITS
@@ -230,9 +230,14 @@ bytedcli bits devtask get --change-id 67890
 # 直接通过 dev_basic_id 查询开发任务详情
 bytedcli bits devtask get --dev-basic-id 10001
 
-# 列出开发任务（SMR），支持按角色、状态、关键字筛选
+# 列出开发任务（SMR / devBasicId 维度），支持按角色、状态、关键字筛选
 bytedcli bits devtask list --role author --state opened --keyword "demo"
 bytedcli bits devtask list --role reviewer --state opened
+
+# 列出待我评审的 Change Card / contribution（contributionId 维度，附 diff 与 review_status）
+bytedcli bits devtask review list
+bytedcli --json bits devtask review list --max-pages 5
+bytedcli bits devtask review list --review-status rejected
 
 # 列出我的开发任务（我创建的 + 我参与的，去重后按创建时间倒序）
 bytedcli bits devtask mine
@@ -315,6 +320,14 @@ bytedcli bits develop stage get --dev-id 123456 --stage dev
 bytedcli bits develop variable list --dev-id 123456 --include-system-vars
 bytedcli bits develop variable list --template-id 987654 --space-id 12345
 ```
+
+`bits devtask list --role reviewer --state opened` 与 `bits devtask review list` 不可互换：
+前者列 Dev Task（`devBasicId` 维度，适合找任务容器、任务状态和任务下的 changes），后者列
+待当前用户评审的 Change Card / contribution（`contributionId` / `changeId` 维度，使用
+reviewer contribution 队列，并批量补齐 diff 统计与 review status）。当用户语义是“待我评审 /
+waiting for review / 代码评审待处理”时优先使用 `bits devtask review list`；只有要按任务容器
+筛选或继续查看某个 Dev Task 内的所有 Change Card 时，才使用 `bits devtask list` 和
+`bits devtask changes list <devBasicId>`。
 
 `bits devtask` 专门读取客户端 `/change-review/<changeId>` 页面，不等同于
 `bits develop get --dev-id <devBasicId>`。`get` 先调用页面同源的
@@ -2192,7 +2205,7 @@ bytedcli bits release risk manual-confirm \
 - `--url-path` 在客户端做 substring 匹配，同时把过滤值的最长 path segment 作为 backend hint 收窄响应（backend `path=` 是 per-segment 子串，多 segment 切片不识别）。
 - backend 默认 10 分钟无续期会自动停止抓包；watch 超时后会拉不到新数据，需要重跑 `bits anywhere listen` 续期。
 - `--mode ws` 仅作为 WebSocket 协议研究 escape hatch；实测 server 对非浏览器指纹连接 silently 拒推送，**不要在生产场景使用**。
-- `share get --url <url>` 是只读查询：单条链接包含 `_proxy_share_item_id` 和 `appId`，可加 `--curl`；批量链接包含 `_proxy_share_items_id`，返回原始分享数据。
+- `share get --url <url>` 是只读查询：单条链接包含 `_proxy_share_item_id` 和 `appId`，可加 `--curl`；批量链接包含 `_proxy_share_items_id` 和 `appId`，返回原始分享数据。
 - `mock create-local`、`mock create-remote`、`mock enable`、`mock disable`、`mock delete` 都是写操作，必须显式加 `--yes`；调试时优先创建 disabled 临时 mock，验证后删除。
 - `mock create-local` 与 `mock create-remote` 都可用 `--query-filter key=value` 精准限制 source query；CLI 会生成 Anywheredoor backend 使用的 `content[0].extra_filter` JSON 字符串。复杂场景可传 `--extra-filter '<json-object>'`，但不要和 `--query-filter` 混用。
 - `mock create-remote` 使用 `--target-url` 配置改写目标。`--query-filter` 匹配 source request，`--target-url` 中的 query 发往 target；目标必须是无凭证、无 fragment、无重复 query key 的绝对 HTTP(S) URL。

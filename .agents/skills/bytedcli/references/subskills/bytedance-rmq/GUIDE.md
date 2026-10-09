@@ -1,6 +1,6 @@
 ---
 name: bytedance-rmq
-description: "Operate RMQ (RocketMQ): use bytedcli for topic and consumer discovery/diagnostics, submit Topic creation approvals on existing clusters, send China-BOE topic messages, and safely prepare or submit topic permission applications for PSMs through the RMQ console API. Use when tasks mention RocketMQ/RMQ topics, consumers, producers, producer/write access, consumer/read access, PSM authorization, or message queues."
+description: "Use bytedcli RocketMQ/RMQ message queues for topic/consumer discovery and diagnostics, Mirror replication, Topic creation approvals on existing clusters, China-BOE messages, and safe preparation/submission of PSM topic permissions (producer/write or consumer/read access) through the console API."
 ---
 
 # bytedcli RMQ (RocketMQ)
@@ -23,6 +23,7 @@ NPM_CONFIG_REGISTRY=http://bnpm.byted.org npx -y @bytedance-dev/bytedcli@latest 
 ## When to use
 
 - RocketMQ / RMQ 话题搜索与详情查看
+- RocketMQ Mirror 同步链路查询，按源/目标 Topic 与源/目标区域组合过滤
 - 查询 Topic 实际生产限额 / 生产配额（按 DC），区分基础信息与实际流量上限
 - 在已有集群上预览或提交 Topic 创建审批
 - Topic 消息预览：按最早/最新 offset，或指定 offset/时间戳查看完整消息正文
@@ -43,23 +44,31 @@ NPM_CONFIG_REGISTRY=http://bnpm.byted.org npx -y @bytedance-dev/bytedcli@latest 
 
 ## Quick start
 
-Commands are grouped under `rmq topic` and `rmq consumer`.
+Commands are grouped under `rmq topic`, `rmq consumer` and `rmq mirror`.
 
 ```bash
+# Mirror 同步链路（在目标区域查询；默认当前站点区域）
+bytedcli --site cn rmq mirror list --source-topic "demo-topic"
+bytedcli --json --site i18n-tt rmq mirror list --source-vregion US-East \
+  --target-topic "demo-target-topic" --target-vregion Singapore-Central \
+  --page 1 --page-size 20
+bytedcli --site i18n-tt rmq mirror list --source-cluster "demo-source-cluster" \
+  --target-cluster "demo-target-cluster" --target-vregion Singapore-Central
+
 # Topic 列表（按名称搜索）
-bytedcli rmq topic list --vregion "China-BOE" --search "demo_topic"
+bytedcli rmq topic list --search "demo_topic"
 # 生产网机器上的 i18n-tt 查询，支持全局 --vregion
 BYTEDCLI_NETWORK_PROFILE=prod bytedcli --site i18n-tt --vregion Singapore-Central rmq topic list --search "demo-topic" --all
-bytedcli rmq topic list --vregion "China-BOE" --page 1 --page-size 20
+bytedcli rmq topic list --page 1 --page-size 20
 # 跨 Owner 搜索全部可见 Topic
-bytedcli rmq topic list --vregion "China-BOE" --search "demo_topic" --all
+bytedcli rmq topic list --search "demo_topic" --all
 
 # Topic 详情（按 ID 查询）
-bytedcli rmq topic get --topic-id 132991 --vregion "China-BOE"
+bytedcli rmq topic get --topic-id 132991
 
 # Topic 详情（按名称查询；同名 Topic 用 Cluster 消歧）
-bytedcli rmq topic get --topic-name "demo_topic" --vregion "China-BOE"
-bytedcli rmq topic get --topic-name "demo_topic" --cluster-name "demo_cluster" --vregion "China-BOE"
+bytedcli rmq topic get --topic-name "demo_topic"
+bytedcli rmq topic get --topic-name "demo_topic" --cluster-name "demo_cluster"
 
 # 实际生产配额（独立于 Topic 基础信息；按 DC 返回）
 bytedcli --site cn rmq topic quota get --topic-name "demo_topic" --vregion China-North
@@ -94,7 +103,7 @@ bytedcli --site cn rmq topic create \
   --yes
 
 # Topic 消息预览（只读；默认从最早 offset 开始，每个 queue 返回 1 条）
-bytedcli rmq topic preview --topic "demo-topic" --cluster "demo-cluster" --vregion "China-BOE"
+bytedcli rmq topic preview --topic "demo-topic" --cluster "demo-cluster"
 # 从每个 queue 的最新位置预览
 bytedcli rmq topic preview --topic "demo-topic" --cluster "demo-cluster" --position latest
 # 精确读取指定 broker/queue 的 offset，并向更新消息方向预览
@@ -114,7 +123,7 @@ bytedcli --site boe rmq topic send --topic "demo-topic" --cluster "demo-cluster"
   --body '{"foo":"bar"}' --env "boe_demo_lane" --swim-lane-v2 --yes
 
 # Consumer Group 列表（按 Topic ID 查询）
-bytedcli rmq consumer list --topic-id 132991 --vregion "China-BOE"
+bytedcli rmq consumer list --topic-id 132991
 
 # 消费组存储的 SDK 配置（group ID 从同站点、同 vregion 的 consumer list 获取）
 bytedcli --site cn rmq consumer list --topic-id 12345 --vregion China-North
@@ -122,20 +131,43 @@ bytedcli --site cn rmq consumer config get --group-id 23456 --vregion China-Nort
 bytedcli --json --site cn rmq consumer config get --group-id 23456 --vregion China-North
 
 # 消费状态（TPS、Lag、Queue 详情）
-bytedcli rmq consumer stats --topic demo-topic --group demo-group --cluster demo-cluster --vregion "China-BOE"
+bytedcli rmq consumer stats --topic demo-topic --group demo-group --cluster demo-cluster
 # 查看 Lag 最高的前 5 个队列
 bytedcli rmq consumer stats --topic demo-topic --group demo-group --cluster demo-cluster --top-lag-queue 5
 
 # Queue 分配状态（按 Broker Cluster → Proxy 展示）
-bytedcli rmq consumer allocation --topic demo-topic --group demo-group --cluster demo-cluster --vregion "China-BOE"
+bytedcli rmq consumer allocation --topic demo-topic --group demo-group --cluster demo-cluster
 # 筛选指定 Broker 和 Queue 对应的 Proxy 信息
 bytedcli rmq consumer allocation --topic demo-topic --group demo-group --cluster demo-cluster --broker demo-broker --queue 0
 
 # 客户端连接状态（按 Broker Cluster → Proxy → Client 连接串展示）
-bytedcli rmq consumer clients --topic demo-topic --group demo-group --cluster demo-cluster --vregion "China-BOE"
+bytedcli rmq consumer clients --topic demo-topic --group demo-group --cluster demo-cluster
 # 筛选指定 Proxy 的 Client 信息
 bytedcli rmq consumer clients --topic demo-topic --group demo-group --cluster demo-cluster --proxy 10.0.0.1
 ```
+
+## Mirror 查询
+
+- 使用 `rmq mirror list`，支持 `--source-topic`、`--target-topic`、
+  `--source-vregion`、`--target-vregion`、`--source-cluster` 和
+  `--target-cluster` 组合过滤。
+- `--target-vregion` 同时选择查询区域和目标区域过滤，例如 `Singapore-Central`；
+  i18n-tt 下也接受 `SG` / `singapore`。未传时使用已配置的区域，否则取 RMQ 站点默认区域。
+  Mirror 不提供独立的查询区域参数，内部请求直接复用目标区域。
+  `--site` 仍决定站点与认证；目标区域不会自动切换站点。
+- `--source-vregion` 是服务端源区域过滤，使用完整名称（如 `US-East`），省略时查询所有源区域。
+- `--source-cluster` / `--target-cluster` 使用大小写敏感的完整集群名精确匹配。
+  RMQ API 没有已验证的集群过滤参数，因此 CLI 会先遍历 Topic/Region 条件下的服务端结果，
+  再按集群过滤并计算准确的 `total`；无集群条件时仍只请求用户指定的一页。
+- 默认 `--page 1 --page-size 20`，每次只取一页。JSON 返回 `mirrors[]`、`total`、`page`、
+  `page_size`、请求 `vregion`、`source_vregion`、`source_cluster`、`target_vregion`
+  和 `target_cluster`；`total` 是全部服务端条件和客户端集群条件共同过滤后的总数，
+  按分页字段继续查询后续页。
+- 每条 Mirror 包含两端 Topic ID/名称、Cluster、region/vregion、Mirror 集群、优先级、
+  哈希策略、owner 和创建/修改时间。`state` 保留原始状态码，`status` 为
+  `pending/running/rejected/deleted/suspended/modifying/unknown`；未知码不视为运行中。
+- 文本完整展示两端资源名称，剥除终端控制序列；JSON 保留字段原值。缺失元数据为 null，
+  空列表表示本次过滤无匹配，权限及畸形响应保持为错误。此命令只查询，不修改同步链路。
 
 ## Topic 创建审批
 
@@ -183,13 +215,16 @@ bytedcli --site cn rmq topic list --vregion "CN" --search "demo"
 - `burst` 保留原始配置值，不推算瞬时峰值；`invalid` 对应后端 `inValidate`，缺失时为 null。
 - `configured: false` 表示成功响应中的配额映射为空，不代表无限流或零配额。
   权限不足、后端未配置错误及响应异常保持错误，不转换成空结果。
-- 默认 vregion 与其他 Topic 查询一致为 `China-BOE`；查询 CN 生产环境显式使用
-  `--site cn --vregion China-North`。查询只读，不修改配额。
+- 未传 `--vregion` 时与其他 Topic 查询一样按 `--site` 取默认 vregion。查询只读，不修改配额。
 
 ## Notes
 
 - 需要结构化输出加 `--json`
-- `--vregion` 优先使用子命令显式值，其次逐级继承父命令和全局显式值；都未指定时，`topic list/get/preview` 等查询命令默认为 `China-BOE`，`topic create` 默认且仅支持 `China-North`。
+- `--vregion` 优先使用子命令显式值，其次逐级继承父命令和全局显式值，再次是命令行 `--site boei18n` 这类站点写法自带的 vregion（环境变量 `BYTEDCLI_CLOUD_SITE=boei18n` 不带 vregion，仍按 `boe` 取默认值）；都没有时按 `--site` 取默认值：`cn` 为 `China-North`、`boe` 为 `China-BOE`、`i18n-tt` 为 `US-East`、`us-ttp` 为 `us-ttp`、`eu-ttp` 为 `eu-ttp2`，其他站点为 `China-BOE`。`i18n-bd` 的默认值未经验证，查询时显式传 `--vregion`。
+- 同站点默认值之外的区要显式传 `--vregion`，按 ID 查询也一样：不传时 `topic get --topic-id`、`consumer list`、`consumer config get` 只查默认区，例如 `i18n-tt` 的新加坡 Topic 要加 `--vregion Singapore-Central`（或 `SG`）。
+- 多活 Topic 在同站点的多个区各有一份：Topic 名、Cluster 名相同，Topic ID 不同；同名消费组在各区各有 ID 和消费状态。不传 `--vregion` 时读的是默认区那份，`--cluster`、`--cluster-name` 都不能用来指定区；要读其他区那份就显式传 `--vregion`。默认区报错或没有消费记录，不代表其他区也一样，换 `--vregion` 再查。
+- RMQ 读命令的 JSON 都在 `context.vregion` 给出这次请求用的 vregion（`SG` 这类别名已归一；成功和接口报错时都有），`topic list`、`consumer list` 的 `data.vregion` 同值。文本输出里，`topic list`、`consumer list` 标题中的 vregion 和 `topic preview`、`consumer config get`、`consumer stats` / `allocation` / `clients` 的 `VRegion` 行也是请求的 vregion；`topic get`、`topic quota get` 的 `VRegion` 行是后端返回的值。Topic 自身所在的区看 Topic 记录（`topic list`、`topic get`）里的 `vregion` / `region`。
+- `topic send` 按同样顺序取 vregion，但只支持 `China-BOE`（`--site boe` 的默认值），`--site boei18n` 会被拒绝；`topic create` 默认且仅支持 `China-North`。
 - 在生产网机器查询 `i18n-tt` 时设置 `BYTEDCLI_NETWORK_PROFILE=prod`，Topic 和 Consumer 请求会改用生产网入口 `cloud-i18n.bytedance.net`；办公网不要设置此变量。
 - 若返回 403 且响应体含 `network_segregation_rejected`，说明当前网络与 profile 不匹配，先核对再重试；轮换 vregion 或 site 不能解决网络隔离。
 - `topic send` 只支持 China-BOE，必须使用 `--site boe`；body 原样传给 RMQ，不校验 JSON
@@ -199,6 +234,7 @@ bytedcli --site cn rmq topic list --vregion "CN" --search "demo"
 - 消息发送需要 Topic producer/write 权限；权限不足时先申请权限，不要重试掩盖权限错误
 - Topic 列表支持 `--search` 按名称模糊搜索和分页（`--page` / `--page-size`）
 - Topic 列表默认只查当前用户 owner 范围；跨 Owner 查询全部可见 Topic 时使用 `--all`
+- `us-ttp` 网关不开放 `--all` 背后的全量 Topic 搜索：`topic list --all` 返回 `RMQ_ALL_TOPIC_SEARCH_UNAVAILABLE`（HTTP 403），这不是权限问题，不要申请权限，去掉 `--all` 重试；`topic get --topic-name` 和不带 `--cluster-name` 的 `topic quota get --topic-name` 在默认 Topic 列表没有精确命中时也返回这个错误码，不能据此判定 Topic 不存在，已知 Topic ID 时改用 `--topic-id`
 - Topic 详情支持 `--topic-id` 或 `--topic-name` 查询；按名称查询遇到同名 Topic 时加 `--cluster-name` 消歧
 - `topic preview` 是只读消息查看，不创建 Consumer Group、不消费消息、不修改任何 Consumer offset
 - `topic preview` 默认从最早 offset 开始，每个 queue 返回 1 条；可用 `--position latest` 改为最新位置
@@ -209,8 +245,8 @@ bytedcli --site cn rmq topic list --vregion "CN" --search "demo"
 - 当前 `topic preview` 只支持普通 Topic，不支持泳道 Topic、重试队列或死信队列
 - Consumer Group 列表需要指定 `--topic-id`
 - `consumer config get` 必须传正整数 `--group-id`；从同站点、同 vregion 的
-  `consumer list` 返回值中按消费组名称找到 `groupId`。`--vregion` 沿用查询命令的
-  `China-BOE` 默认值，CN 查询显式使用 `--site cn --vregion China-North`。
+  `consumer list` 返回值中按消费组名称找到 `groupId`。`--vregion` 沿用查询命令按
+  `--site` 取的默认值。
 - 配置查询返回 `configId`、`groupId`、`vregion`、`config`、原始 `state`、描述、
   创建人、owners 和创建/修改时间。`config` 保留字符串键值，可读取
   `consumer.rate.limit.enable` 与 `consumer.rate.limit.qps`；不推断单实例/全组限流范围。

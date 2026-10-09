@@ -27,6 +27,7 @@ NPM_CONFIG_REGISTRY=http://bnpm.byted.org npx -y @bytedance-dev/bytedcli@latest 
 - 查询已有 TQS job 的状态
 - 获取成功任务的预览结果或下载完整 CSV
 - 需要显式指定 YARN cluster / queue，或从环境变量提供默认值
+- 排障（**仅限持有 TQS 管理台管理员 session 的 SRE / 平台人员**）：按 TQS job id 读取不属于自己的 job 的元数据（SQL 原文、生效 conf、executionInfo、YARN application id）和提交 / 查询日志（`tqs job get` / `tqs job log`）。普通用户没有这份权限，执行时会得到 `TQS_MANAGEMENT_PERMISSION_DENIED`；查自己的 job 仍用 `tqs status`
 
 ## 前置条件
 
@@ -95,13 +96,13 @@ bytedcli tqs clusters
 
 当未显式指定 `--cluster` 和 `TQS_CLUSTER` 时，bytedcli 会根据全局 `--site` 参数自动推断目标 TQS 集群：
 
-| `--site` 值                                          | 推断的 TQS 集群 |
-| --------------------------------------------------- | ---------- |
-| `cn`（默认）                                            | `cn`       |
-| `boe`                                               | `boe`      |
-| `i18n-tt`                                           | `sg_row`   |
-| `i18n-bd` / `i18n`                                  | `sg`       |
-| `us-ttp` / `us-ttp-bdee` / `us-ttp-usts` / `eu-ttp` | `va`       |
+| `--site` 值                                         | 推断的 TQS 集群 |
+| --------------------------------------------------- | --------------- |
+| `cn`（默认）                                        | `cn`            |
+| `boe`                                               | `boe`           |
+| `i18n-tt`                                           | `sg_row`        |
+| `i18n-bd` / `i18n`                                  | `sg`            |
+| `us-ttp` / `us-ttp-bdee` / `us-ttp-usts` / `eu-ttp` | `va`            |
 
 ```bash
 # 使用 --site 自动推断到 sg_row 集群
@@ -112,6 +113,38 @@ bytedcli tqs execute --sql "SELECT 1" --cluster sg_row --json
 ```
 
 **优先级**：`--cluster` > `TQS_CLUSTER` 环境变量 > `--site` 自动推断 > 默认 `cn`
+
+## 排障：读取他人 job 的管理员命令（`tqs job`）
+
+> **权限前提**：`tqs job get` / `tqs job log` 读取的是 TQS **管理台**数据，服务端只放行管理员身份。使用前先确认你持有 TQS 管理台的管理员 session（SRE / 平台 oncall 才有）；没有的话命令返回 `TQS_MANAGEMENT_PERMISSION_DENIED`，这是预期行为，不是故障。bytedcli 本身不授予任何权限，权限校验全部在 TQS 服务端完成。
+
+这两条命令走 TQS **管理台 v3 API**（`/api/v3/management/tasks/{id}/status`），和上面的 OpenAPI 命令是两套认证模型：
+
+| 路径                           | 身份                                                                                    | 何时使用                                                                                                                             |
+| ------------------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 注入管理台 session（主要用法） | `BYTEDCLI_TQS_MANAGEMENT_COOKIE` 环境变量，值是管理员登录 TQS 管理台后的 session cookie | 持有管理员 session 的 SRE；可跨全部集群查找                                                                                          |
+| ByteCloud 网关（兜底）         | 你自己的 SSO（`bytedcli auth login`）                                                   | 仅当 TQS 平台已把管理 API 授权给你的个人账号；默认未授权，返回 `TQS_MANAGEMENT_PERMISSION_DENIED`。网关每个 site 只对应一个 TQS 部署 |
+
+- 没有注入 session 时命令走网关，被拒返回 `TQS_MANAGEMENT_PERMISSION_DENIED`（hint 带 `logId`）。普通用户看到这个错误就应停止，不要尝试绕过；只有确实承担 TQS 排障职责的人才应持有管理台 session 或向 TQS 平台申请网关权限。
+- 注入 cookie 的格式是登录后 TQS 控制台的完整 Cookie 请求头：`tqs-token=<token>; tqs-username=<user>`（不含 `Cookie:` 前缀）。bytedcli 只透传，不存储、不写日志、不刷新；过期后重新注入。不要把它写进 shell profile，放在 owner-only 的 env 文件里按需加载。
+- JSON 输出用全局 `-j/--json`（放在子命令前，例如 `bytedcli -j tqs job get …`）；`tqs job` 子命令本身没有局部 `--json`。
+- 网关路径下 `--region` 会被拒绝（网关每个 site 只对应一个部署，无法扫描），`--cluster` 不改变回答的部署，只用来标记结果和改写日志域名，并在 `warnings` 里说明。
+- cookie 路径下不带 `--cluster` 会并行扫描全部生产集群（TQS id 只在集群内唯一），`--region <cn|sg|va|us|my|norway|eupipo|gcp|pinnacle|jp>` 可缩小范围（`sg` 含东南亚的 `my_*` / `nonttmy_*`：它们的 YARN app 在 Megatron 里也标为 sg）；单个集群查询失败不会中断扫描，会记录在 `warnings`；多个集群同时命中返回 `TQS_JOB_AMBIGUOUS`，用 `--cluster` 钉死。
+- `tqs job log` 从结果存储下载日志（无需认证，只接受 https 且主机在已知结果存储域名后缀内）；存储只支持整档下载，`--tail-bytes` / `--head-bytes` 在本地截取，`--output` 保存整档（此时忽略 head / tail）；单档上限 512 MB，超过返回 `TQS_LOG_TOO_LARGE`。my / norway / eupipo / iepipo / gcp / pinnacle / usbd 集群的日志 URL 会自动改写到办公网可达域名。
+- JSON 输出字段：`job_id`、`status`、`user_name`、`engine_type`、`application_id`（从 progress / executionInfo 恢复的 YARN app id）、`query`、`conf`、`execution_info`、`progress`、`log_url`、`query_log_url`、`tqs_cluster`、`route`、`searched_clusters`、`warnings`。
+
+```bash
+# 管理员：注入 TQS 管理台 session 后查询（普通用户没有这份 session，会得到 PERMISSION_DENIED）
+export BYTEDCLI_TQS_MANAGEMENT_COOKIE='tqs-token=<token>; tqs-username=<admin-user>'
+bytedcli -j tqs job get --job-id 930747398
+bytedcli tqs job get --job-id 930747398 --region cn
+bytedcli -j tqs job get --job-id 930747398 --cluster cn_priest
+
+# 提交日志尾部 / 查询日志开头 / 整档落盘
+bytedcli tqs job log --job-id 930747398 --cluster cn_priest --tail-bytes 20000
+bytedcli tqs job log --job-id 930747398 --cluster cn_priest --kind query --head-bytes 4000000
+bytedcli tqs job log --job-id 930747398 --cluster cn_priest --kind query --output ./query.log
+```
 
 ## Quick start
 
@@ -217,4 +250,3 @@ bytedcli TQS 从以下位置加载凭证，优先级从高到低：
 - `../../../invocation.md`
 - `../../../troubleshooting.md`
 - [TQS 应用申请](https://bytequery.bytedance.net/docs/tqs/super_app_apply)
-

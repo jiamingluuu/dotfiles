@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bytedcli.local/schemas/ftf-repair-plan.json",
+  "title": "FTF Repair Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "plan_id",
+    "plan_hash",
+    "generated_at",
+    "execution_enabled",
+    "task",
+    "scope",
+    "versions",
+    "summary",
+    "findings",
+    "actions",
+    "explicit_exclusions",
+    "approval"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "plan_id": { "type": "string", "minLength": 1 },
+    "plan_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "execution_enabled": { "const": false },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "url",
+        "site",
+        "space_id",
+        "update_time",
+        "snapshot_hash",
+        "evidence_hash"
+      ],
+      "properties": {
+        "id": { "type": "integer", "minimum": 0 },
+        "url": { "type": ["string", "null"] },
+        "site": { "type": "string" },
+        "space_id": { "type": ["string", "null"] },
+        "update_time": { "type": ["string", "null"] },
+        "snapshot_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "evidence_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "direction",
+        "annotation_op_type",
+        "annotation_source",
+        "total_clusters",
+        "analyzed_clusters",
+        "truncated",
+        "sample_size"
+      ],
+      "properties": {
+        "direction": { "const": "inbound" },
+        "annotation_op_type": {
+          "anyOf": [
+            { "type": "null" },
+            { "const": "all" },
+            { "type": "integer", "minimum": 0 },
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "integer", "minimum": 0 }
+            }
+          ]
+        },
+        "annotation_source": {
+          "enum": ["explicit", "url", "default", "none", null]
+        },
+        "total_clusters": { "type": "integer", "minimum": 0 },
+        "analyzed_clusters": { "type": "integer", "minimum": 0 },
+        "truncated": { "type": "boolean" },
+        "sample_size": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "case_cards", "tool_cards"],
+      "properties": {
+        "policy": { "type": "string", "minLength": 1 },
+        "case_cards": { "type": "string", "minLength": 1 },
+        "tool_cards": { "type": "string", "minLength": 1 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executable", "needs_human", "excluded"],
+      "properties": {
+        "executable": { "type": "integer", "minimum": 0 },
+        "needs_human": { "type": "integer", "minimum": 0 },
+        "excluded": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "actions": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+    "explicit_exclusions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "markdown": { "type": "string" },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "action_ids", "invalidation_rules"],
+      "properties": {
+        "status": { "const": "awaiting_confirmation" },
+        "action_ids": { "type": "array", "items": { "type": "string" } },
+        "invalidation_rules": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "cluster_id",
+        "psm",
+        "method",
+        "direction",
+        "diff_path",
+        "flow_diff_url",
+        "affected_flows",
+        "diff_details",
+        "classification",
+        "subtype",
+        "confidence",
+        "disposition",
+        "evidence",
+        "excluded_alternatives",
+        "next_action",
+        "action_id"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "cluster_id": { "type": "string", "minLength": 1 },
+        "psm": { "type": "string", "minLength": 1 },
+        "method": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["inbound", "outbound"] },
+        "diff_path": { "type": "string", "minLength": 1 },
+        "flow_diff_url": { "type": ["string", "null"] },
+        "affected_flows": { "type": "integer", "minimum": 0 },
+        "diff_details": { "type": "integer", "minimum": 0 },
+        "classification": { "enum": ["system_noise", "other"] },
+        "subtype": {
+          "enum": ["dynamic_trace_value", "existing_noise_rule", "evidence_incomplete"]
+        },
+        "confidence": { "enum": ["high", "medium", "low"] },
+        "disposition": { "enum": ["executable", "needs_human", "excluded"] },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "excluded_alternatives": { "type": "array", "items": { "type": "string" } },
+        "next_action": { "type": "string", "minLength": 1 },
+        "action_id": {
+          "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "source_findings",
+        "target",
+        "change",
+        "preconditions",
+        "risk",
+        "rollback",
+        "read_back",
+        "verification",
+        "approval",
+        "execution_available"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "const": "noise_template_upsert" },
+        "source_findings": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["psm", "method", "direction", "diff_path"],
+          "properties": {
+            "psm": { "type": "string", "minLength": 1 },
+            "method": { "type": "string", "minLength": 1 },
+            "direction": { "enum": ["inbound", "outbound"] },
+            "diff_path": { "type": "string", "minLength": 1 }
+          }
+        },
+        "change": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["before", "after"],
+          "properties": {
+            "before": { "type": "string" },
+            "after": { "type": "string" }
+          }
+        },
+        "preconditions": { "type": "array", "items": { "type": "string" } },
+        "risk": { "const": "low" },
+        "rollback": { "type": "string", "minLength": 1 },
+        "read_back": { "type": "string", "minLength": 1 },
+        "verification": { "type": "array", "items": { "type": "string" } },
+        "approval": { "const": "required" },
+        "execution_available": { "const": false }
+      }
+    }
+  }
+}

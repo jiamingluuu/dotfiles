@@ -1,6 +1,6 @@
 ---
 name: bytedance-abase
-description: "Operate ABase2 via bytedcli: list namespaces, search by PSM, get namespace detail, list/get tables, list supported online-query commands, run online query, inspect ABase regions/locations, list/get ABase classic (1.0) clusters, query/grant/delete/reconcile ACP permissions (SDK runtime auth for PSM or user, with BPM approval tickets), track/approve/reject/cancel/retry ABase BPM tickets, create ABase logical tables on DataLeap (CoralNG ABaseLogicalTable), and list ABase logical tables the current user owns on DataLeap. Use when tasks mention ABase, ABase2, ABase namespace, ABase table, ABase PSM search, ABase online query, ABase ACP permission/authorization, ABase ticket/workflow approval, or creating/searching ABase logical tables on DataLeap. Do not use for Redis/Cache service operations; use bytedance-cache for Redis cache services."
+description: "Use bytedcli for ABase/ABase2 namespaces, PSM search, tables, online-query command discovery/execution, regions/locations and classic (1.0) clusters; ACP SDK runtime permissions for PSMs/users (query/grant/delete/reconcile), BPM tickets (track/approve/reject/cancel/retry), and DataLeap/CoralNG ABaseLogicalTable creation or owned-table search. Not Redis/Cache service operations."
 ---
 
 # bytedcli ABase

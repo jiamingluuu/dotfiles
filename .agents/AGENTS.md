@@ -151,3 +151,12 @@ My OKR records live in `~/notes/okr/`; the exact directory for the current cycle
 3. **Further directions**: estimated effort and expected benefit for each (Section 2).
 4. **Knowledge base**: pitfall entries written this time; suggested insights (Section 3).
 5. **OKR**: what changed in the records (Section 4).
+
+# Where files go
+- Code: /workspace. Edit code here.
+- Notes, knowledge base, and OKRs go in ~/notes, never under /workspace.
+  ~/notes is a live mirror of the user's Mac ~/notes, so writes there land on the Mac.
+  - Knowledge base: ~/notes/kb/ (start from ~/notes/kb/README.md)
+  - OKRs: ~/notes/okr/ (okr-update skill)
+  - Other notes: ~/notes/
+- Don't run git in ~/notes; the user commits from the Mac.

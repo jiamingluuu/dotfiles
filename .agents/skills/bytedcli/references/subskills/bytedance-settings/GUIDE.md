@@ -77,6 +77,10 @@ bytedcli settings biz search-id --appid "1001"
 - `settings item apply` 作为兼容别名保留，推荐使用 `settings item create`
 - 分页命令优先使用 `--page`（1-based）；`--page-no` 仅兼容旧用法
 
+- `settings review create`、`settings whitelist add/save` 未指定 `--support-harmony-os` 时读取并保留现有鸿蒙开关：review 和新增白名单取配置 `latest_info.extra`，保存白名单取其 `whitelist_info.extra`。读取失败或缺少布尔值时停止提交，可用 `--support-harmony-os true|false` 显式指定。
+- review 的 JSON 输入和 whitelist add 的 `--from` 支持 `support_harmony_os` 或 `extra.support_harmony_os`；显式 CLI 参数优先，顶层字段优先于 extra，最终请求中的两处值保持一致。
+- whitelist add 会检查创建结果的鸿蒙开关；值不一致时，按新记录的内容和状态补充保存，再回读确认，成功输出最终详情。后续保存或回读失败会返回 `SETTINGS_WHITELIST_PARTIAL_WRITE` 和已创建的 `whitelist_id`；先用 whitelist get 核对，再保存该记录，避免重复执行 add。补充保存沿用后端代码校验，代码需要有有效返回值。
+
 ## References
 
 - `references/settings.md`

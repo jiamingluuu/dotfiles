@@ -10,7 +10,7 @@ description: "FTF/Tesla-X traffic recording and replay testing. Primary entry fo
 Use this Skill when the user needs to:
 
 - classify FTF Outbound calls as `SUCCESS`, `FAILURE`, or `UNKNOWN` across synchronous, asynchronous, and batch returns;
-- query FTF tasks, reports, methods, flows, DIFF clusters, plans, or scene-mining dictionaries;
+- query FTF tasks, reports, methods, flows, DIFF clusters, plans, or scene-mining dictionaries, and safely preview or submit explicit DIFF cluster annotations;
 - analyze a Tesla-X task/Flow URL, attribute DIFFs, correlate code changes, or diagnose replay failures;
 - create, execute, retry, stop, or otherwise manage FTF/TeslaX plans and tasks;
 - onboard a PSM through FTF v3 smart access, inspect SDK/prebuild/recording status, or diagnose `source_hash_mismatch`;
@@ -39,7 +39,7 @@ Load each optional reference only under its own condition:
 | FTF objects, task shapes, or evidence boundaries                                                 | [domain-model.md](references/domain-model.md)                   |
 | enum meanings, especially `failed_reason`                                                        | [enums.md](references/enums.md)                                 |
 | task read/write command and response details                                                     | [task-api.md](references/task-api.md)                           |
-| DIFF query commands, parameters, and response fields                                             | [diff-query-reference.md](references/diff-query-reference.md)   |
+| DIFF query or explicit cluster annotation commands, parameters, and response fields              | [diff-query-reference.md](references/diff-query-reference.md)   |
 | end-to-end DIFF attribution orchestration                                                        | [diff-analysis.md](references/diff-analysis.md)                 |
 | task-level DIFF cluster triage                                                                   | [task-diff-triage.md](references/task-diff-triage.md)           |
 | random-value, ordering, or other DIFF denoising                                                  | [diff-denoise.md](references/diff-denoise.md)                   |
@@ -53,6 +53,8 @@ Load each optional reference only under its own condition:
 | outbound Mock did not match or behaved abnormally                                                | [diag-mock.md](references/diag-mock.md)                         |
 | traffic exists but coverage or hit count is low                                                  | [diag-coverage.md](references/diag-coverage.md)                 |
 | FTF 回放报告智能归因分析                                                                         | [task-analysis.md](references/task-analysis.md)                 |
+| generate a reviewable, read-only DIFF repair plan                                                | [remediation-plan.md](references/remediation-plan.md)           |
+| 查询智能归因噪音明细或执行已确认的噪音修复                                                       | [remediation-noise.md](references/remediation-noise.md)         |
 | 执行 FTF 流量回放                                                                                | [replay-execution.md](references/replay-execution.md)           |
 | Recorded Flow 查询或删除                                                                         | [recorded-flow.md](references/recorded-flow.md)                 |
 | Plan query, mutation, or execution                                                               | [plan-management.md](references/plan-management.md)             |
@@ -117,16 +119,16 @@ For ordinary read-only queries, load the closest reference and inspect help only
 
 ## Error recovery
 
-| Error                                   | Required handling                                                                                                                                                     |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `unknown command`                       | Run `bytedcli ftf --help --all-help`; on a confirmed version gap run `bytedcli self update`. Never treat this as a reason to open a web page.                         |
-| URL parse failure                       | Report the supported URL shapes and ask for a task ID. Do not hand-split the URL or browse the page to guess.                                                         |
+| Error                                   | Required handling                                                                                                                                                                                                                                                                                      |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `unknown command`                       | Run `bytedcli ftf --help --all-help`; on a confirmed version gap run `bytedcli self update`. Never treat this as a reason to open a web page.                                                                                                                                                          |
+| URL parse failure                       | Report the supported URL shapes and ask for a task ID. Do not hand-split the URL or browse the page to guess.                                                                                                                                                                                          |
 | `FTF_AUTH_REQUIRED` / HTTP 401          | Check only the site parsed from the URL; force-refresh and retry once (read-only requests do this automatically). When status is still `need_login`, present the returned verification link through interactive recovery, wait for the user to finish login, then resume the blocked read-only branch. |
-| HTTP 403 / permission denied            | Authorization gap: report endpoint, business error code, `log_id`, and the returned apply link/contact owner. Never re-login or retry before authorization; enter interactive recovery and resume only after the user confirms access is ready. |
-| HTTP 429 / timeout / 5xx                | Retry only the failed read-only branch with lower concurrency. Do not re-run successful branches and do not fall back to the UI.                                      |
-| `FTF_API_ERROR` / schema error          | Keep the redacted `code`, `message`, `log_id`, and `endpoint`; degrade attribution to partial or failed. Never fabricate missing fields.                              |
-| Partial evidence unavailable            | Create an Evidence Boundary stating the missing scope, its effect on the conclusion, and the single action that would close it. If user input or access can close it, enter interactive recovery instead of ending the workflow. |
-| Task not in a consumable terminal state | Pause at a resumable checkpoint; report the current state and waiting condition instead of a pseudo-complete attribution. Re-read task state before continuing.       |
+| HTTP 403 / permission denied            | Authorization gap: report endpoint, business error code, `log_id`, and the returned apply link/contact owner. Never re-login or retry before authorization; enter interactive recovery and resume only after the user confirms access is ready.                                                        |
+| HTTP 429 / timeout / 5xx                | Retry only the failed read-only branch with lower concurrency. Do not re-run successful branches and do not fall back to the UI.                                                                                                                                                                       |
+| `FTF_API_ERROR` / schema error          | Keep the redacted `code`, `message`, `log_id`, and `endpoint`; degrade attribution to partial or failed. Never fabricate missing fields.                                                                                                                                                               |
+| Partial evidence unavailable            | Create an Evidence Boundary stating the missing scope, its effect on the conclusion, and the single action that would close it. If user input or access can close it, enter interactive recovery instead of ending the workflow.                                                                       |
+| Task not in a consumable terminal state | Pause at a resumable checkpoint; report the current state and waiting condition instead of a pseudo-complete attribution. Re-read task state before continuing.                                                                                                                                        |
 
 ## Interactive recovery checkpoints
 

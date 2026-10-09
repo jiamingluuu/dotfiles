@@ -1,5 +1,20 @@
 # Watchdog Diag commands
 
+HTTP/FaaS 调用走 `watchdog http execute`；日志检索走 `watchdog log search`。HTTP 请求体为 JSON 对象/数组时编码为 `j`+Base64，普通文本编码为 `s`+原文。ROW 的明文在 `--json data`；合规区 HTTP 仅返回断言或结构，日志无断言时可返回后端允许的 `complianceLogs`。
+
+```bash
+bytedcli --json --site i18n-tt watchdog http execute --region sg1 \
+  --url https://api.example.com/demo --method GET --query 'id=demo-id'
+bytedcli --site us-ttp watchdog http execute --region USTTP \
+  --url https://api.example.com/demo --method POST --body-file ./demo-request.json \
+  --header 'Content-Type: application/json' --assert 'status = ok'
+bytedcli --json --site i18n-tt watchdog log search --region sg1 \
+  --psm example.service.api --include-keyword timeout --range 1h
+bytedcli --json --site us-ttp watchdog log search --region USTTP --log-id demo-log-id
+```
+
+HTTP 的 `--header`、`--query` 和日志的 `--psm`、关键词均可重复；日志也支持 Unix 秒 `--start`/`--end`、AND/OR、`--no-case-sensitive`、`--page-size`（默认 20）。详细参数以命令 `--help` 为准。
+
 BDEE 无法直接调用 US-TTP / EU-TTP 内的 RPC。Diag 在合规区内执行 RPC/DB 并对结果断言。当前命令覆盖 RPC 与 RDS。CLI 按 `--site` / `--region` 自动选择 execute 控制面，不要手写 host。
 
 ```bash

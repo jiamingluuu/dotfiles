@@ -1,6 +1,6 @@
 ---
 name: bytedance-tea
-description: "Operate TEA (DataOpen / tea-next) via bytedcli: run semantic analysis queries, manage dashboard reports and DSL, inspect session replay, list project roles, invite project members with dry-run confirmation, query event metadata, and send one TEA / ByteIO event. Supports cn/va/sg/sglark for general TEA operations; project permissions are CN titan only. Use for TEA dashboards, reports, snapshots, DSL, permissions, roles, members, session replay, behavior detail, event metadata, analysis links, or 事件分析/漏斗/留存/权限/角色/成员."
+description: "Operate TEA (DataOpen / tea-next) via bytedcli: run semantic analysis queries, manage dashboard reports and DSL, inspect session replay, read LLM workbench operations-agent sessions with their rounds and model/tool/MCP steps (SG titan only), list project roles, invite project members with dry-run confirmation, query event metadata, and send one TEA / ByteIO event. Supports cn/va/sg/sglark for general TEA operations; project permissions are CN titan only. Use for TEA dashboards, reports, snapshots, DSL, permissions, roles, members, session replay, agent sessions, LLM workbench journeys, behavior detail, event metadata, analysis links, or 事件分析/漏斗/留存/权限/角色/成员."
 ---
 
 # bytedcli TEA
@@ -32,6 +32,7 @@ NPM_CONFIG_REGISTRY=http://bnpm.byted.org npx -y @bytedance-dev/bytedcli@latest 
 - 需要从 tea-next 看板 / 报表链接提取 DSL（用 `tea get-dsl`，常配合 `tea query`）
 - 需要从 tea-next 行为细查详情页查询用户行为流（behavior-detail/detail）
 - 需要按公共事件属性 + 时间范围搜索会话回放，并读取回放事件、操作流或播放器原始数据
+- 需要读 LLM workbench 里 agent 的会话：会话列表、每轮问答、每轮的模型 / 工具 / MCP 步骤（`tea operations-agent session`，SG titan only）。接入的 agent 不限于 iDA；只要 TEA 项目权限，也能读其他用户的会话
 - 需要根据 DSL 生成 tea-next 分析结果链接
 - 需要查看有权限的看板信息 / 看板内报表列表
 - 需要用 DSL 创建 tea-next report，或把已有 report 添加到 dashboard
@@ -204,6 +205,15 @@ bytedcli tea session-replay event list --project-id 123 --recording-id demo-reco
 bytedcli tea session-replay play get --project-id 123 --recording-id demo-recording-id \
   --dump ./play.json
 
+# LLM workbench operations-agent 的 agent 会话（SG titan）：ID 取自链接
+# /tea-next/project/<project-id>/llm-workbench/operations-agent/<页面>/<space-id>
+bytedcli tea operations-agent session list --project-id 123 --space-id 45 --start '7d ago'
+# 下一页：next_page_token 原样传给 --page-token，--start / --end 用上一页 JSON 的 start_time / end_time
+bytedcli --json tea operations-agent session list --project-id 123 --space-id 45 \
+  --start 1788000000 --end 1790000000 --page-token 1001:1790000000000000
+# 一个会话的每轮问答和每一步；--full 让 JSON 带每一步完整的 input/output
+bytedcli --json tea operations-agent session get --project-id 123 --space-id 45 --session-id 1001
+
 # 行为细查：用精确事件名做服务端前置过滤，避免拉取大量无关埋点
 bytedcli tea behavior --project-id 123 --behavior-app-id 456 --query-id '<device_id>' --query-type device_id --start-time 1776096000 --end-time 1776182399 --events example.play,example.view --dump ./behavior.json
 
@@ -308,6 +318,11 @@ bytedcli --json tea get-dsl --tea-site cn --auth-mode titan \
 - `tea behavior` 查询行为细查行为流，支持从 `/behavior-detail/detail` URL 自动解析 `project_id/query_id/query_type/appId/timestamp/eventFilterList/sort`。`--behavior-app-id` 是行为细查请求体 `app_id`；`--app-id` 是 DataOpen 凭证 app id。`--events` 会下发为 OpenAPI `event_name`，用于精确事件名服务端前置过滤。**注意：`--json` 模式下必须搭配 `--dump` 使用**，原始行为流会写入文件。
 - `tea session-replay list` 通过 tea-next internal `POST /projects/<pid>/session_replay/analysis` 按公共事件属性和值及时间范围搜索录制。`--filter` 使用 `key=value` 格式并可重复，多个条件按 AND 组合；同一组条件可能命中多个用户和多条回放。该资源组仅支持 CN titan 模式。
 - `tea session-replay event list`、`flow get`、`play get` 分别读取录制事件元数据、操作事件流和播放器原始数据。结构化输出统一使用放在 domain 之前的全局 `bytedcli --json tea ...`；事件/操作流在 JSON 模式下必须搭配 `--dump`，播放数据始终必须 `--dump`。dump 文件权限固定为 `0600`。录制过期或被清理时，`play get` 可能返回 `BR_RECORDING_NOT_EXISTS`。
+- `tea operations-agent session list` / `get` 读 LLM workbench operations-agent 模块里 agent 的会话，仅 SG titan 模式。接入的 agent 不限于 iDA。`--project-id` 和 `--space-id` 取自链接 `/tea-next/project/<project-id>/llm-workbench/operations-agent/<页面>/<space-id>`（如 `home`、`journeys` 页）；project 只有一个 space 时 `--space-id` 可省，有多个时报错并列出可选的 space。iDA agent ID 推不出这两个 ID。
+  - `--start` / `--end` 按会话第一轮的开始时间过滤，默认近 30 天；列表按最近一轮的开始时间倒序。`get` 要求会话在时间窗内开始，否则返回 `TEA_OPERATIONS_AGENT_SESSION_NOT_FOUND`，这时用 `--start` 放宽，不能据此判定会话不存在。
+  - 列表翻页：`has_more` 为 true 时把 `next_page_token` 原样传给 `--page-token`，`--start` / `--end` 用上一页 JSON 的 `start_time` / `end_time`（不传时时间窗会随当前时间移动），`--project-id`、`--space-id` 不变。
+  - `get` 的 JSON 里每一步的 `input` / `output` 默认截到前 2000 个字符，并带 `input_chars` / `output_chars` 和 `input_truncated` / `output_truncated`；要完整文本加 `--full`。每轮最多读 1000 步、每个会话最多读 100 轮，达到上限时 `steps_truncated` / `rounds_truncated` 为 true，之后的步骤或轮次可能没读到。
+  - 某一轮 `steps_found` 为 false 表示 TEA 没有返回这一轮的 trace，这一轮的步骤没读到，不代表这一轮没有步骤。
 - `tea get-event` 查询事件元数据；不传 `--events` 时列出全部事件，传入时精确查询一个或多个事件（逗号分隔）。精确查询默认展开 `params`，全量查询默认不展开附加信息；可用 `--with` 显式控制。`--dump <filepath>` 可将原始 JSON 结果写入文件（相对路径基于工作目录）。**注意：`--json` 模式下必须搭配 `--dump` 使用**，原始数据量较大不适合直接输出到终端。
 - `--region`：切换 DataOpen 区域（`cn` | `va` | `sg`，默认 `cn`）。使用管道联动时，每个子命令都需要指定 `--region`。
 - `--tea-site`：切换控制面（`cn` | `va` | `sg` | `sglark` | `auto`）；需要按 tea-next URL host 路由海外控制面时优先推荐使用。
@@ -332,6 +347,7 @@ Titan 走的是 tea-next 的内部 API（`/datafinder/api/v1/*`），只暴露�
 | `tea query`                           | ✅ POST `/analysis`（同步）         | ✅ POST `/analysis`（异步：返回 `result_id` 后 CLI 自动轮询 `/analysis/<result_id>/result`） | ✅ POST `/reports/<rid>/analysis`（需要 project/dashboard/report 三元组，只能走 URL 或显式三个 ID） |
 | `tea behavior`                        | ✅                                  | ❌（内部 API 未暴露 `behaviors/flows_v3`）                                                   | ❌                                                                                                  |
 | `tea session-replay *`                | ❌                                  | ✅ CN（VA / SG 未验证）                                                                      | ❌（未验证）                                                                                        |
+| `tea operations-agent session *`      | ❌                                  | ✅ SG（CN / VA 未验证）                                                                      | ❌（未验证）                                                                                        |
 | `tea role list`                       | ❌                                  | ✅ CN（VA / SG 未验证；只返回 `status=1`）                                                   | ❌（未验证）                                                                                        |
 | `tea member invite`                   | ❌                                  | ✅ CN（VA / SG 未验证；默认 dry-run，`--yes` 提交）                                          | ❌（未验证）                                                                                        |
 | `tea member check`                    | ❌                                  | ✅ CN（VA / SG 未验证；只读，按邮箱精确匹配）                                                | ❌（未验证）                                                                                        |

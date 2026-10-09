@@ -10,6 +10,15 @@ bytedcli codebase auth config-auth --app-id <app-id> --app-secret <app-secret>
 
 # Repo
 bytedcli codebase repo get "example-org/example-repo"
+bytedcli codebase repo compare -R "example-org/example-repo" --head feature/demo
+bytedcli codebase repo compare -R "example-org/example-repo" --base v1.0.0 --head v1.1.0 --straight
+bytedcli codebase repo app search -R "example-org/example-repo" --query "bot"
+bytedcli codebase repo app get -R "example-org/example-repo" --app-id 707116058869522
+# 先预览完整 payload；确认权限与 webhook 事件并获授权后，再以相同参数追加 --yes。
+bytedcli codebase repo app install -R "example-org/example-repo" --app-id 707116058869522
+bytedcli codebase repo app install -R "example-org/example-repo" --app-id 707116058869522 --yes
+bytedcli codebase repo app uninstall -R "example-org/example-repo" --app-id 707116058869522 --yes
+bytedcli codebase repo app list -R "example-org/example-repo"
 bytedcli codebase repo list --query "demo-query"
 bytedcli codebase namespace list # 只列出可用 namespace；按名称查找用 search
 bytedcli codebase namespace search --query "example" # search 必须带 query
@@ -112,6 +121,9 @@ bytedcli codebase mr comment list 821 -R "example-org/example-repo"
 bytedcli codebase mr files 821 -R "example-org/example-repo"
 bytedcli codebase mr diff 821 -R "example-org/example-repo" --file "path/to/file.ts"
 bytedcli codebase mr file-review get --mr 821 -R "example-org/example-repo"
+bytedcli codebase mr file-review list --mr 821 -R "example-org/example-repo"
+bytedcli codebase mr file-review get --mr 821 -R "example-org/example-repo" --path "path/to/file.ts"
+bytedcli codebase mr file-review unview --mr 821 -R "example-org/example-repo" --path "path/to/file.ts"
 # 先预览完整 payload；用户确认目标与 payload 后，再以相同参数追加 --yes。
 bytedcli codebase mr file-review update --mr 821 -R "example-org/example-repo" --state viewed --file "path/to/file.ts"
 bytedcli codebase mr file-review update --mr 821 -R "example-org/example-repo" --state viewed --file "path/to/file.ts" --yes
@@ -271,7 +283,9 @@ bytedcli codebase permission apply -R "example-org/example-repo" --action develo
 - `codebase pipeline runs list` 用 `-R + --branch/--git-tag + --pipeline` 列出该 pipeline 的 run 历史（runSeq / 状态 / 触发人 / 提交），支持 `--page/--page-size`，用于判断「连续挂了几晚」。省略 `--branch`/`--git-tag` 时返回跨所有分支的 run 历史（每条 run 带自己的 branch），结果按时间倒序；可用 `--status <succeeded|failed|...>`（服务端过滤）与 `--since <2026-06-01|"7d ago">` 缩小范围。`--since` 按触发时间过滤后再分页（先 filter 再 page），run 倒序只扫描到满足当前页所需即停。
 - `codebase pipeline runs get` 给出某次 run 的失败诊断，需用 `--run-seq <n>`（来自 runs list）或 `--run-id <id>` 指定 run（最新 run 直接用 status）：失败 step、failReason、逐 step 状态，以及指向完整日志的 Run URL（git pipeline 的 atom 日志在 Orca，step_logs 接口对 git pipeline 返回空）。
 - `codebase mr artifacts list|download` 会解析 MR check run 正文里的 BITS artifact 链接；下载多个匹配项时需要 `--all`，文件默认按 check run id 分目录保存。
-- `codebase mr file-review get` 会把当前 MR 版本的变更文件与当前用户的 viewed paths 对齐，返回 total / viewed / unviewed 汇总和文件列表；`update --state viewed|unviewed` 只修改个人查看状态。文件范围使用可重复的 `--file` 或 `--all`，二者不能混用；`--mr` 也接受 BITS Code detail URL。`update` 默认 dry-run 并输出完整 payload；Agent 必须先展示预览，只有用户确认同一组目标、状态和 payload 后，才用相同参数追加 `--yes` 提交。任一字段变化都要重新预览并确认。
+- `codebase mr file-review get` 会把当前 MR 版本的变更文件与当前用户的 viewed paths 对齐，返回 total / viewed / unviewed 汇总和文件列表；`list` 逐个文件列出已读状态（含旧版本已读但已不在 diff 的 stale 文件）；`get --path <file>` 查单个文件的已读详情（viewed / 是否在当前 diff / stale）；`unview --path <file>` 直接把单个文件标为未读。`update --state viewed|unviewed` 只修改个人查看状态。文件范围使用可重复的 `--file` 或 `--all`，二者不能混用；`--mr` 也接受 BITS Code detail URL。`update` 默认 dry-run 并输出完整 payload；Agent 必须先展示预览，只有用户确认同一组目标、状态和 payload 后，才用相同参数追加 `--yes` 提交。任一字段变化都要重新预览并确认。
+- `repo compare --head <branch|tag|sha> [--base <branch|tag|sha>] [--straight]` 对比任意两个 ref 的变更文件与增删行数；`--base` 省略时用仓库默认分支，默认从 merge base 起算（三点，同 git 三点 diff），`--straight` 改为直接快照对比（两点）；ref 解析顺序为完整 sha、branch、tag、服务端 revision，branch 与 tag 同名时 branch 优先（要精确指向 tag 用完整 sha），方向为 base -> head
+- `repo app list|search|get|install|uninstall` 管理仓库应用市场安装；输出按官方契约字段级 allowlist（永不打印 app secret、webhook URL/secret、邮箱、redirect URI）。`install`/`uninstall` 默认 dry-run 输出完整 payload，`--yes` 才提交；`install` 需用户认证（app 身份被服务端拒绝），提交前先核对预览里的 Permissions 与 Webhook.Events
 - **Review Bypass 的含义与边界**：它不会跳过 MR、不会直接推主分支，也不会自动豁免 CI/Checks；它只为指定 MR 的当前 `source_commit_id` 创建人工 Review 门禁豁免，并保留创建人、时间、原因和 commit 的服务端审计记录。仅当仓库规则允许、当前用户具有 bypass 权限，并且用户明确授权同一 repo、MR、source commit 与合入方式时执行；“帮我发 MR”“直接发布”等泛化表述不视为 bypass 授权。
 - **Review Bypass 的固定流程**：先用 `bytedcli --json codebase mr status` 读取 `data.merge_request.source_commit_id`、`data.review.review_rule_groups[].ReviewRules[].Name` 和 checks/mergeability；确认非 Review 门禁均已满足后，用服务端字段 `TargetType` / `Target` / `Reason` 创建 review bypass；随后用 `mr bypass list --commit-id <source_commit>` 和 `mr status` 回读，最后才执行 `mr merge`，并用 `mr get` 验证 `Status=merged` 与 `MergeCommitId`。不要用 `--review` 快捷参数或小写 `kind` / `target` / `reason` 示例，已知会被部分服务端规则拒绝。
 - **Commit 变更后必须重新确认**：Review Bypass 绑定创建时的 `source_commit_id`。源分支新增或改写 commit 后，旧 bypass 不适用于新提交；必须重新读取 status，并再次获得用户对新 commit 的明确授权，不能静默续用旧授权。
@@ -289,6 +303,7 @@ bytedcli codebase permission apply -R "example-org/example-repo" --action develo
 - `codebase repo branch delete/cherry-pick/rebase` 是 git 原生写操作：`branch delete --name` 删分支；`branch cherry-pick --target-branch --commit` 把某 commit 应用到目标分支（冲突时 Codebase 返回 conflict 错误、不产生新 commit）；`branch rebase --branch --base-branch` 把分支 rebase 到 base 上。cherry-pick / rebase 默认 dry-run 只预览，必须加 `--yes` 才真正执行。
 - `codebase commit list --base <ref> --target <ref>` 列出 base..target 之间可达的 commit（区间模式下 `--revision` 被忽略）；单 ref 历史仍用 `--revision`。
 - 旧的扁平命令如 `get-merge-request`、`create-mr`、`create-branch`、`list-check-runs` 仍保留为隐藏兼容别名，建议新流程切到新命令树。
+- `codebase api <endpoint>` 是原始 REST 逃生舱（对齐官方 CLI，类似 `gh api`）：`<endpoint>` 支持 Action 简写（`GetUser`）、code.byted.org 绝对路径（`/_/api/v1/namespaces`）或白名单 host 完整 URL；`-f`/`-F` 组装 body（GET/HEAD 进 query），`--input <file|->` 传原始 JSON body，`-i` 包 `{Status, Headers, Body}`，响应 body 原样打印、非 2xx 也照打并以 exit 1 结束。请求只发往 code.byted.org / code-tx.byted.org / codebase-api.byted.org；无确认门，mutation 端点立即生效，有 dedicated 命令时优先用 dedicated 命令（仓库 App 的 secret 端点必须走 `repo app`，不要用 `api` 绕过 allowlist）。Subscribe* 等 SSE 端点暂不支持，会明确报错。
 
 ## CI 排障顺序
 

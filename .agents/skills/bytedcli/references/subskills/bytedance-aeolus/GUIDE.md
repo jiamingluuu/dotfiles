@@ -1,6 +1,6 @@
 ---
 name: bytedance-aeolus
-description: "Execute exact bytedcli Aeolus commands for reports, charts, dashboards, datasets, Query Editor, and Shuttle: list datasets/dashboards, inspect dataset fields and model info, edit computed fields, batch download/upload dataset fields via XLSX, execute SQL, run/save visual queries, resolve/query reports and charts, patch chart styles, discover report/dashboard filters, manage Query Editor folders/files/templates/temp tables/tasks, submit Shuttle compliance queries, and organize dashboards/datasets into folders (看板/数据集 文件夹、移动、归类). Use when another skill or the user needs a specific bytedcli aeolus command, flag, region, or auth path, or when tasks mention Aeolus, BI dashboards, charts, datasets, filters, data analytics queries, Query Editor, Shuttle, or data templates. For changing an existing dashboard (live sheet re-anchor, smallest change, page validation, 字段加到表格, TopN, 筛选项/联动), load references/dashboard-development.md first, then the command references needed for the current step."
+description: "Use exact bytedcli Aeolus commands/flags/region/auth for BI reports, charts, dashboards and datasets; fields/models, computed fields, XLSX field import/export, SQL/visual queries, chart styles/filters, Query Editor files/folders/templates/temp tables/tasks, Shuttle compliance queries, and 看板/数据集移动归类. Existing dashboard edits (live sheet re-anchor, smallest change, page validation, 字段加到表格, TopN, 筛选项/联动) require references/dashboard-development.md first."
 ---
 
 # bytedcli Aeolus (Data Analytics Platform)

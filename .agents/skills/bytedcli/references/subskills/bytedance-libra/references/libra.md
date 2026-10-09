@@ -661,6 +661,35 @@ bytedcli libra experiment realtime --flight-id <flight_id> --metric-group <metri
 
 **时区说明：** TikTok ROW / US 站点（`--site i18n-tt` 或 `--site us-ttp`）的实时数据以 UTC 时间为基准；中国站默认使用本地时间（CST）。不传 `--start`/`--end` 时 CLI 自动按站点时区计算"最近 1 小时"范围。
 
+## libra metric-group list
+
+按标签、类型、状态、关键字列出某个 Libra App 下的指标组，对应 DataTester 指标组列表页。结果按最近修改时间倒序。
+
+```bash
+# 按标签过滤
+bytedcli --site i18n-tt libra metric-group list --app-id <app_id> --tag "<tag_name>"
+
+# 多个标签取并集（可重复传，也可逗号分隔），叠加类型与状态
+bytedcli --site i18n-tt libra metric-group list --app-id <app_id> --tag <tag_a>,<tag_b> --type dorado --status active
+
+# 关键字 + 分页，--json 返回 metric_groups[] 与 page.total_items / page.total_pages
+bytedcli --json libra metric-group list --app-id <app_id> --tag "<tag_name>" --keyword <kw> --page 2 --page-size 50
+```
+
+**选项：**
+
+| 选项                | 说明                                           | 默认值   |
+| ------------------- | ---------------------------------------------- | -------- |
+| `--app-id <id>`     | Libra App ID（必填）                           | -        |
+| `--tag <tag>`       | 指标组标签，可重复或逗号分隔；多个标签取并集   | -        |
+| `--keyword <kw>`    | 按指标组名称 / ID 关键字过滤（对应页面 `kw=`） | -        |
+| `--type <type>`     | 指标组类型，如 `dorado`、`libra`、`uba`        | 全部类型 |
+| `--status <status>` | `active`（使用中）或 `offline`（已下线）       | 全部状态 |
+| `--page <n>`        | 页码                                           | `1`      |
+| `--page-size <n>`   | 每页条数                                       | `10`     |
+
+说明：后端按子串、不区分大小写匹配标签，短词会命中所有包含它的标签；要精确范围请传完整标签名。输出中的标签形如 `<app_id>-<标签名>-<标签 ID>`，过滤时传标签名部分。
+
 ## libra metric-group get
 
 查看指标组基础信息。文本模式输出 owner / metric / virtual table 摘要；`--json` 返回完整 payload。

@@ -1,6 +1,6 @@
 ---
 name: bytedance-grafana
-description: "Operate Grafana dashboards via bytedcli: dashboard info/search, panel data query, dashboard/group/panel/variable/link CRUD, Metrics link injection, and panel screenshots. Use when tasks mention Grafana dashboards, panels, groups, variables, links, panel data, or dashboard screenshots."
+description: "Use bytedcli Grafana for dashboard search/info, panel data or screenshots, dashboard/group/panel/variable/link CRUD and Metrics link injection."
 ---
 
 # bytedcli Grafana

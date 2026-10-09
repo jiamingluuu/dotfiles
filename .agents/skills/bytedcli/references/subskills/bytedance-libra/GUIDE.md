@@ -1,6 +1,6 @@
 ---
 name: bytedance-libra
-description: "Operate Libra/DataTester A/B experiments, special-config spaces, and config-center releases via bytedcli: search and inspect single or batched experiments, batch-query version assignment counts and reports, read special configuration values and versions, diagnose whether a test user hit an experiment, read raw change history and traffic-effect records, audit configuration changes around an incident time, query metric reports and significance, manage test users, handle experiment lifecycle and peer-review actions, inspect automated checks, rerun failed TikDiff tasks, create config release tickets, execute whitelist tests, create and poll reviews, deploy rollout percentages, and execute rollbacks. Use for Libra, DataTester, A/B test, experiment/flight, batch experiment details, baseuser assignment counts, special config, config release, config-path search, traffic allocation, user hit diagnosis, P-Value, metric trends, test users, peer review, review checks, TikDiff reruns, or incident-time experiment audits."
+description: "Use bytedcli Libra/DataTester for A/B experiments/flights (single/batch search/details, version/baseuser assignment counts, reports/P-Value/significance/trends, traffic allocation); test-user management/hit diagnosis, lifecycle/peer review/automated checks/TikDiff reruns; special-config values/paths/versions, raw change history/traffic-effect records and incident-time audits; config-center release tickets, whitelist tests, review creation/polling, percentage rollouts and rollbacks."
 ---
 
 # bytedcli Libra
@@ -425,6 +425,24 @@ bytedcli libra deep-analysis datasource get --flight-id <flight_id> --group-id <
 - **数值语义**：只有在 query 前后各做一次 `deep_analysis_init_data` 认证检查、两次都返回 `code 0` 时，输出才会标成 `value_semantics.kind = raw`。**Libra 会话失效时 `query_data` 仍然返回 `code 0`，只是把绝对值换成归一化值**，响应看起来和成功一模一样——所以拿不到认证证明时命令宁可报错也不给数。看到 `LIBRA_DEEP_ANALYSIS_AUTH_ERROR` 就重新 `bytedcli auth login`，不要把它当偶发失败重试。
 - 深度分析**不返回** p-value / confidence：这些字段统一是 `null`，不要据此判断显著性，也不要自行补算。上游明确返回的空对象 `{}` 会原样保留。
 - `datasource list` 对应的后端接口常常需要 30 秒以上，命令已提高默认超时；仍然超时就调大 `--timeout-ms`（单位毫秒）。
+
+### 按标签列出指标组
+
+```bash
+# 按指标组标签过滤某个 App 下的指标组（对应指标组列表页的「标签」筛选）
+bytedcli --site i18n-tt libra metric-group list --app-id <app_id> --tag "<tag_name>"
+
+# 多个标签取并集，可叠加类型、状态、关键字
+bytedcli --site i18n-tt libra metric-group list --app-id <app_id> --tag <tag_a> --tag <tag_b> --type dorado --status active --keyword <kw>
+
+# 分页拉全量结构化结果
+bytedcli --json libra metric-group list --app-id <app_id> --tag "<tag_name>" --page 1 --page-size 50
+```
+
+- 后端按子串、不区分大小写匹配标签，传短词会命中所有包含它的标签；要精确范围请传完整标签名。
+- 输出里的标签形如 `<app_id>-<标签名>-<标签 ID>`，过滤时传中间的标签名即可。
+- 不传 `--type` 返回所有类型（libra / dorado / uba 等）；只看 Dorado 指标组时加 `--type dorado`。
+- `--status active` 对应页面的「使用中」，`--status offline` 对应「已下线」；不传则两者都返回。
 
 ### 查看指标组信息
 
@@ -856,6 +874,7 @@ bytedcli --site i18n-tt libra experiment review-status \
 | `libra ad-report dimension get --flight-id <id> --report-id <id> --dimension <name>`                                        | 通过专用 Provider 端点返回一个 ad-report filter dimension 的完整枚举；成功空集合与失败严格区分                                                                                               |
 | `libra experiment conclusion-report --flight-id <id>`                                                                        | 结论报告聚合（一次拉所有指标 × 所有版本，含 LT 兑换；SLA/分类/指标组筛选）                                                                                                                     |
 | `libra experiment realtime --flight-id <id>`                                                                                 | 实时指标（最近 1 小时监控数据）                                                                                                                                                                |
+| `libra metric-group list --app-id <id> [--tag <tag>]`                                                                        | 按标签 / 类型 / 状态 / 关键字列出 App 下的指标组（多个 `--tag` 取并集，子串匹配）                                                                                                                         |
 | `libra metric-group get --id <id>`                                                                                           | 指标组基础信息（文本摘要；`--json` 返回完整 payload）                                                                                                                                          |
 | `libra metric-group template get --id <id> --app-id <id>`                                                                    | 指标组模版信息（支持 `--type normal\|conclusion`，默认 normal，403 自动 fallback）                                                                                                             |
 | `libra experiment add-metric-group --app-id <id> --flight-id <id> --metric-group-id <id> [--yes]`                            | 批量为实验追加关注指标组（幂等去重，自动解析 dorado→priest 类型）                                                                                                                              |

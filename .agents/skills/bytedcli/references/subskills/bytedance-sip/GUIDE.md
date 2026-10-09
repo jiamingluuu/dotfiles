@@ -1,6 +1,6 @@
 ---
 name: bytedance-sip
-description: "Operate SIP 智能运维平台 via bytedcli. SIP hosts multiple independent sub-platforms: (1) `sip event` — query 线上稳定性事件 (LIBRA 实验变更、Demotion、TCE 变更、Release 等) in a time window; (2) `sip release` — the 智能发布平台 sub-platform, whose first exposed feature is repo lock/unlock (代码库锁定/解锁, for code-freeze / 故障排查期 的代码库管理; more features coming). Invoke when tasks mention SIP、智能运维、stability event、稳定性事件、实验变更、Demotion、按时间窗口查询线上变更、智能发布平台、SIP release、代码库锁定/解锁、锁库/解锁、repo lock、代码封禁."
+description: "Use bytedcli SIP/智能运维: sip event 查询时间窗口内线上稳定性/变更事件（LIBRA 实验、Demotion、TCE、Release）；sip release 智能发布平台：repo lock/unlock（代码库锁定/解锁/封禁，适用于 code-freeze 或故障排查期）与 cron pause/resume（发布调度定时任务暂停/恢复）。"
 ---
 
 # bytedcli SIP

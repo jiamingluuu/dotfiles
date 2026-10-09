@@ -1,5 +1,13 @@
 # RDS
 
+## 章节索引
+
+- [数据库查询](#数据库查询)：只读 SQL、分片保护、OG tagging 与 Watchdog
+- [数据库详情](#数据库详情)
+- [慢查询与诊断](#慢查询与诊断)
+- [BPM 工单管理](#bpm-工单管理)
+- [Notes](#notes)
+
 ## 数据库查询
 
 ```bash
@@ -51,6 +59,36 @@ bytedcli --site eu-ttp --vregion ie2 rds db query "dbname" "SELECT 1" --region i
 - RDS v3 分片元数据或 dbatman 获取失败时，CLI 会输出警告并 fail-open 继续执行；应向用户说明安全检查未完成及潜在风险
 
 `rds db query` 的默认 `auto` 路由与 database-toolbox `execute_sql` 对齐：`China-North`、`China-North5`、`ChinaSinf-North`、`China-East`、`China-Fintech`、`China-BOE`、`Singapore-Central` 经 `db sql execute` 调用 DBW；其他 VRegion 继续调用 RDS 原生 `run_sql`。DBW 区域中，火山 MySQL（`VeDBMySQL`、`MySQL`、`MySQLSharding`）按 RDS 元数据传递真实实例 ID/类型；字节云使用 `ByteRDS`，再由 db-cli 通过 `DescribeInstances` 解析真实实例 ID 与 VDC。全局 `--vregion` 选择该 query 路由，`--vdc` 覆盖 DBW VDC。`rds db table list/schema` 也会把全局 `--vregion` 交给 db-cli 选择 DBW 或 RDS；命令级 `--region` 映射为 db-cli VDC。
+
+### OG tagging 拒绝时使用 Watchdog
+
+如果 `rds db query` 返回 HTTP 403，且同时包含 OG/tagging 文案和 schema 缺失或字段未打标信息，不要切换 `auto` / `legacy` / `dbw` 反复重试。HTTP 401 或只有 tagging 字样、没有 schema/字段证据的报错应先检查站点认证，不要切换到 Watchdog。对 Watchdog 支持区域内的只读核验，按以下顺序执行：
+
+```bash
+# 1. ROW 可返回明文：先取得后续断言使用的已知预期值
+bytedcli --json --site i18n-tt watchdog db execute \
+  --db-name demo_db \
+  --region Singapore-Central/alisg \
+  --sql 'SELECT id, extra FROM sample_table WHERE id=1'
+
+# 2. US 合规区只返回断言结果；US-TTP2 时改用 US-TTP2/useast8
+bytedcli --json --site us-ttp watchdog db execute \
+  --db-name demo_db \
+  --region US-TTP/ova \
+  --sql 'SELECT id, extra FROM sample_table WHERE id=1' \
+  --assert 'id = 1' \
+  --assert 'extra.sample.value = expected-value'
+
+# 3. EU 合规区同样使用已知预期值做断言
+bytedcli --json --site eu-ttp watchdog db execute \
+  --db-name demo_db \
+  --region EU-TTP2/no1a \
+  --sql 'SELECT id, extra FROM sample_table WHERE id=1' \
+  --assert 'id = 1' \
+  --assert 'extra.sample.value = expected-value'
+```
+
+合规区不返回业务明文；Watchdog 只适用于有界只读查询，必须保留主键等值等限制条件，不得改成扫表来验证。完整地区映射、JSON 路径断言与返回语义见 `bytedance-watchdog` skill。
 
 `rds db table list` 支持 `--page <n>` 和 `--page-size <n>`。它们会透传到 DBW `ListTables`；只有 DBW 路由使用分页，`--mode legacy` 的 RDS 直连固定使用 `all=1` 获取全部表。
 

@@ -1,6 +1,6 @@
 ---
 name: bytedance-bytetree
-description: "Query ByteTree service-tree nodes, owner role members, subscriptions, providers, provider resources, and business-tree domains through bytedcli. Invoke whenever tasks mention 服务树、业务树、ByteTree、业务域、节点层级、节点订阅、Provider、服务归属、资源挂载、负责人、Owner 或父子链路查询。"
+description: "Use bytedcli ByteTree for 服务树/业务树 nodes/domains, parent-child hierarchy, owner/负责人 role members, subscriptions, providers and mounted resources. Invoke for 服务归属、业务域、节点层级/订阅、Provider、资源挂载 or 父子链路 queries."
 ---
 
 # ByteTree CLI

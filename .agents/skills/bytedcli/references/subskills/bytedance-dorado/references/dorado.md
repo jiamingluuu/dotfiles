@@ -148,6 +148,16 @@ Use `--region-value` for i18n baseline lookups when an explicit backend region e
 
 For `mycis`, these baseline-global BFFs all share the same host-split rule: `baseline/task/{taskId}/v2`, `baseline/detail/{baselineId}`, `baseline/list`, `baseline/instance/list`, `baseline/{baselineId}/commitTasks/v2`, `baseline/alarm/instance/record`, `baseline/alarm/ack/record`, and `PUT baseline/{baselineId}` (baseline update) are sent to the Oceanus host physically, while `Origin/Referer`, `x-bcgw-vregion`, and `x-dataleap-jwt-token` still follow the `mycis` page context. `mycis` baseline_global uses `region_value=107`; pass `--region mycis` and the CLI fills it automatically, or pass `--region-value 107` explicitly. Reuse this route when adding similar baseline BFFs and cover the `mycis` host/header branch with offline tests.
 
+To read baseline alarm events, use `dorado baseline alarms`. Failure events use `--alarm-content-type baseline_task_failed_event`; slowdown events use `--alarm-content-type baseline_task_slow_event`. The default content type returns all recorded alarm types. For `sg`, both `alarms` and `alarm-acks` use the Oceanus `/dorado_api` host with `region_value=4`, SG page context, and `x-dataleap-jwt-token`.
+
+```bash
+bytedcli dorado baseline alarms --baseline-id <baselineId> --project-id <projectId> --start-alarm-time "YYYY-MM-DD 00:00:00" --end-alarm-time "YYYY-MM-DD 23:59:59" --alarm-content-type baseline_task_failed_event --page 1 --page-size 50 --region sg
+bytedcli dorado baseline alarms --baseline-id <baselineId> --project-id <projectId> --start-alarm-time "YYYY-MM-DD 00:00:00" --end-alarm-time "YYYY-MM-DD 23:59:59" --alarm-content-type baseline_task_slow_event --page 1 --page-size 50 --region sg
+bytedcli dorado baseline alarm-acks --alarm-inst-id <alarmRecordId> --project-id <projectId> --region sg
+```
+
+Read subsequent pages until the returned `total` is covered. These are recorded alarms, not a complete list of all task failures or slowdowns. Historical events do not prove a task is still affected; a slowdown record may describe a `NOT_READY` task with no instance ID. Use baseline links and task instances to verify the current state. `alarm-acks` reads existing ACK records and does not change shielding.
+
 When the user instead wants the project-scoped baseline list page (for example `/dorado_api/baseline_global/baseline/list?...&projectId=<projectId>&baseline=<keyword>`), prefer:
 
 ```bash
@@ -1559,6 +1569,7 @@ bytedcli dorado task online [taskId] [options]
 - `--project-id <projectId>` - Project ID (required)
 - `--message <message>` - Deploy message
 - `--skip-codes <codes>` - Skip specific error codes during commit
+- `--skip-check` - Skip dependency-online and multiple-task-to-one-partition checks. SQL checks still run.
 - `-r, --region <region>` - Dorado region (default: "cn")
 
 **Example:**
@@ -2487,7 +2498,7 @@ bytedcli dorado node save --node-id NxyzABC --data-outputs 'dp_compliance.demo_t
 
 ### node submit
 
-Submit (commit and deploy) a python/notebook/spark node without approval fields. Defaults to auto-release.
+Submit (commit and deploy) a python/notebook/spark/HSQL node without approval fields. Defaults to auto-release.
 Before running this write, resolve the node's task ID with `dorado node relation --node-id <nodeId> --region <region>`, then run `task review-policy` with that task ID and the same project. Show the matched policy and reviewers and obtain user confirmation.
 
 ```bash
@@ -2501,6 +2512,7 @@ bytedcli dorado node submit --node-id <nodeId> --project-id <projectId> -r <regi
 - `--message <message>` - Commit message
 - `--no-auto-release` - Do not auto-release after commit
 - `--no-skip-commit-pipeline` - Do not skip commit pipeline checks
+- `--custom-alarm-rule-ids <ids>` - Comma-separated alarm rule IDs
 - `-r, --region <region>` - Dorado region (default: "cn")
 
 **Example:**
@@ -2515,7 +2527,7 @@ bytedcli dorado node submit --node-id <node-id> --project-id <project-id> --mess
 
 ### node submit-approval
 
-Submit (commit and deploy) a python/notebook/spark node with approval fields. Defaults to auto-release.
+Submit (commit and deploy) a python/notebook/spark/HSQL node with approval fields. Defaults to auto-release.
 Before running this write, resolve the node's task ID with `dorado node relation --node-id <nodeId> --region <region>`, then run `task review-policy` with that task ID and the same project. Show the matched policy and reviewers and obtain user confirmation.
 
 ```bash
@@ -2792,8 +2804,7 @@ bytedcli dorado adhoc exec [sql] [options]
 - `--queue <queue>` - Queue name, full path (`region/dc/cluster/queue`), or `auto` for dynamic lowest-load queue selection
 - `--engine-type <type>` - Engine type (default: "auto")
 - `--username <username>` - Owner username (defaults to task owner)
-- `--name <name>` - Debug instance name (defaults to server-generated 调试\_<date>)
-- `--date <date>` - Schedule date in YYYYMMDD format (defaults to yesterday)
+- `--date <date>` - Schedule date in YYYYMMDD format, at 00:00:00 (defaults to yesterday at the current time). Dorado names the run after this schedule time, `调试_<yyyy_MM_dd_HH_mm>`; a run cannot be given its own name, so tell runs apart by the returned Debug ID (`jobId` in JSON)
 - `-o, --output <path>` - Download result CSV to file
 - `--no-wait` - Submit only, do not wait for completion
 - `--timeout <seconds>` - Poll timeout in seconds (default: 600)
@@ -2828,7 +2839,7 @@ bytedcli dorado adhoc exec "SELECT * FROM db.table LIMIT 10" --task-id 1000252 -
 # Doris SQL using a doris_sql carrier task
 DORADO_DORIS_EXEC_TASK_ID=123456789 bytedcli dorado adhoc exec "SELECT 1" --engine-type doris_sql --project-id 123 --region cn --no-wait
 
-# Async: submit only, get debugId for later status/result queries
+# Async: submit only, get the Debug ID (`jobId` in JSON) for later status/result queries
 bytedcli dorado adhoc exec "复杂SQL" --task-id 1000252 --no-wait
 
 # Using .dorado.env defaults (auto-loaded from ~/.local/share/bytedcli/data/.dorado.env or ./.dorado.env)
@@ -2847,6 +2858,10 @@ Note: <detailed error extracted from run log>
 ```
 
 JSON mode returns the same detail in `errorMessage`.
+
+JSON output of a submitted or `--dry-run` execution always has `warnings` (an array, empty when there is nothing to report); text mode prints each one on stderr as `Warning: …`. For example, `--name` is accepted from older scripts but not applied, and produces a warning.
+
+`adhoc exec` (with or without `--no-wait`), `adhoc status` and `adhoc history` also return `webUrl` (text mode: a `Task page:` line): the carrier task's console page, where the user can follow its runs in the browser. Hand it to the user when a run will outlast the current turn, and do not assemble the URL yourself: it is built on the console host a browser opens (for example `dataleap-sg.tiktok-row.net`), not the API host, which moves to an internal host under `BYTEDCLI_NETWORK_PROFILE=prod`, and it uses the console's own project key (`sg_<id>`, `i18n_<id>` on va). A carrier in the 临时查询 tree opens on its query page (`/dorado/development/query/<taskId>`), any other task on its development page (`/dorado/development/node/<taskId>`). The link is to the task, not to one run, so `history` returns it once beside `instances`. It is `null` when `--project-id` was passed and the task could not be read to tell which page it is.
 
 ---
 
@@ -2901,7 +2916,7 @@ bytedcli dorado adhoc status [options]
 **Example:**
 
 ```bash
-bytedcli dorado adhoc status --debug-id 12977673 --task-id 119886373
+bytedcli dorado adhoc status --debug-id 12977673 --task-id 119886373 --region sg
 ```
 
 When status is `failed`, JSON output includes:
@@ -2911,7 +2926,8 @@ When status is `failed`, JSON output includes:
   "debugId": 12977673,
   "status": "failed",
   "statusCode": 5,
-  "note": "2026-06-05T14:18:35.904 ERROR ..."
+  "note": "2026-06-05T14:18:35.904 ERROR ...",
+  "webUrl": "https://dataleap-sg.tiktok-row.net/dorado/development/node/119886373?project=sg_123"
 }
 ```
 

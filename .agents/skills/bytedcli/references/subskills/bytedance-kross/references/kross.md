@@ -16,6 +16,7 @@ Kross 用于创建多平台（Linux、macOS、Windows）容器环境（workload�
 - `kross vm execute`
 - `kross vm access start`
 - `kross workload list`
+- `kross workload follow`
 - `kross workload create`
 - `kross workload delete`
 - `kross workload exec`
@@ -88,6 +89,19 @@ bytedcli kross workload list --workspace demo-workspace
 - CLI 会自动翻完分页，不需要手动指定 page 参数
 - 支持通过 `--name`、`--type`、`--status-cached` 做过滤
 
+## 观察 workload 状态
+
+```bash
+bytedcli kross workload follow --workspace demo-workspace --name demo-job
+bytedcli --json kross workload follow --workspace demo-workspace --workload-id 72
+```
+
+- `--name` 和 `--workload-id` 二选一
+- 依次输出 Kross 提供的 `SNAPSHOT`、`MODIFIED` 和 `DELETED` 事件
+- `--json` 输出 JSONL，每行是一个事件，不附加最终 envelope
+- 这是无界流，只能在直接 CLI 会话中运行，不支持 MCP 或 captured execution
+- 服务端关闭 SSE 流后命令结束；客户端不会自动重连
+
 ## 虚拟机
 
 查询当前 workspace 可用的 VM 镜像模板：
@@ -105,7 +119,8 @@ bytedcli kross vm create \
   --image-template-id ubuntu-2204 \
   --vcpu 2 \
   --memory-mb 4096 \
-  --architecture x86_64
+  --architecture x86_64 \
+  --timeout-seconds 300
 ```
 
 - `--architecture` 支持 `x86_64`、`arm64`
@@ -113,6 +128,8 @@ bytedcli kross vm create \
 - `--cloud-init-user-data-secret-name` 引用 workspace namespace 中已有的 Secret
 - `--cloud-init-network-data-file` 从本地文件读取 network-data
 - `--retain-disk-on-delete` 请求在删除 workload 时保留平台管理的持久盘；默认不启用
+- `--timeout-seconds` 设置 VM 的存活时间，必须为正整数且没有固定上限；超时后 Kross 自动回收 VM
+- VM 不支持 `autoDeleteOnCompletion`，`vm create` 不会发送该字段
 
 启动、停止或重启 VM：
 

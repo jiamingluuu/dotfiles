@@ -113,7 +113,7 @@ The curl renderer removes headers that curl manages itself, such as `Host`, `Con
 
 ## Share Links
 
-Use `share get --url <url>` when the user only has an Anywheredoor share link. Single-item links contain `_proxy_share_item_id` and `appId`; bulk links contain `_proxy_share_items_id`. Add `--curl` only for single-item links.
+Use `share get --url <url>` when the user only has an Anywheredoor share link. Single-item links contain `_proxy_share_item_id` and `appId`; bulk links contain `_proxy_share_items_id` and `appId`. Add `--curl` only for single-item links.
 
 ```bash
 bytedcli --json bits anywhere share get \

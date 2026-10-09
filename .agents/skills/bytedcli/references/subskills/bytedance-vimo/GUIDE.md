@@ -99,6 +99,16 @@ An explicit site must agree with the selected capability. Do not retry a site mi
    default unless the caller is explicitly authorized. Never automatically retry an unknown
    mutation outcome. Vimo performs the final permission check for every read and write.
 
+## Kani permission recovery for agents
+
+When JSON output contains `next_action` and `approval_context`, the calling Agent must pass the
+complete `approval_context` to the executor named by `next_action.executor`. For `a2ui`, ask A2UI to
+run `next_action.operation` and generate the Kani application link.
+
+The calling Agent must not construct a Kani URL, invent missing fields, submit the permission
+application, or retry the Vimo mutation automatically. It should show the generated link to the user
+and retry only after the user confirms that permission was granted.
+
 ## Progressive references
 
 Read the site reference first, then load only the leaf reference required by the request:

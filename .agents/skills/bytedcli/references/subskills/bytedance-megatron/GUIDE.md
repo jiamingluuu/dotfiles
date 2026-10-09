@@ -1,6 +1,6 @@
 ---
 name: bytedance-megatron
-description: "Operate Megatron (Spark/Flink app management) via bytedcli: get/search Spark app metadata, discover Spark AppMaster and Flink JobManager/TaskManager log links, list/tail Megatron proxy logs for Flink JM/TM, get queue usage, inspect queue quota, and read a Spark app's Spark UI run detail (jobs/stages/executors/sql/explain) from a live YARN proxy or the Spark History Server REST API. Use when tasks mention Megatron, Spark apps, Flink apps, application logs, queue usage, user queue quota, Spark UI, Spark jobs/stages/executors, Spark explain plans, Flink JM/TM proxy logs, or analyzing how a Spark/Flink task ran."
+description: "Operate Megatron (Spark/Flink app management) via bytedcli: get/search/locate Spark app metadata (resolve an application id to its Dorado task/instance and Spark UI roots), discover Spark AppMaster and Flink JobManager/TaskManager log links, list/tail/head Megatron proxy container logs for Flink JM/TM and Spark AppMaster/executors, get queue usage, inspect queue quota, and read a Spark app's Spark UI run detail (jobs/stages/task-summary quantiles/slowest tasks/executors/sql/explain) from a live YARN proxy or the Spark History Server REST API. Use when tasks mention Megatron, Spark apps, Flink apps, application logs, executor logs, driver syslog head, queue usage, user queue quota, Spark UI, Spark jobs/stages/tasks/executors, task duration percentiles, data skew, Spark explain plans, Flink JM/TM proxy logs, or analyzing how a Spark/Flink task ran."
 ---
 
 # bytedcli Megatron
@@ -23,12 +23,12 @@ NPM_CONFIG_REGISTRY=http://bnpm.byted.org npx -y @bytedance-dev/bytedcli@latest 
 ## When to use
 
 - Megatron Spark/Flink 应用管理
-- 查询或搜索 Spark 应用元数据
+- 查询或搜索 Spark 应用元数据；从 application id 反查 Dorado task / instance / project、Spark UI 入口与 AppMaster 日志目录
 - 发现 Spark AppMaster 日志、Flink JobManager / TaskManager 日志链接
 - 查询队列使用情况
 - 查询队列默认配额、用户配额，或计算单个用户在队列中的资源上限
-- 读取单个 Spark 应用的 Spark UI 运行详情（jobs / stages / executors / sql / explain），分析任务运行情况（慢 stage、数据倾斜、executor 异常、failed task、Spark explain 执行计划）
-- 列出或 tail Megatron proxy log 页面中的 Flink JM/TM 日志；从 JM 的 `taskmanager_url.list` 反查可用 TM URL
+- 读取单个 Spark 应用的 Spark UI 运行详情（jobs / stages / task-summary / tasks / executors / sql / explain），分析任务运行情况（慢 stage、task 耗时分位与数据倾斜、executor 异常、failed task、Spark explain 执行计划）
+- 列出、tail 或 head Megatron proxy 容器日志：Flink JM/TM、Spark AppMaster（driver）以及按 executor id 定位的 Spark executor 容器；从 JM 的 `taskmanager_url.list` 反查可用 TM URL
 - 按全局 `--site` 路由，按 `--region` / 全局 `--vregion` 选择站点内虚拟区域
 
 > 执行前缀见 `../../invocation.md`；下面示例直接写 `bytedcli`。
@@ -49,6 +49,9 @@ bytedcli -j --site us-ttp-usts megatron app get --app-ids application_1234567890
 bytedcli --site i18n-tt megatron app search --app-name demo-app --state RUNNING -r va
 bytedcli --site i18n-tt megatron app search --me -r sg
 
+# 排查第一站：从 application id 反查 Dorado task/instance/project、TQS id、live/history Spark UI 根地址与 AM 日志目录
+bytedcli --site i18n-tt megatron app locate --app-id application_1234567890000_000001 -r sg
+
 # 查看队列使用情况 + 用户配额（合并的命令）
 bytedcli --site i18n-tt megatron queue usage --queue-name root.demo_queue --user-name demo-user -r sg
 bytedcli --site i18n-tt megatron queue usage -r sg
@@ -68,6 +71,10 @@ bytedcli --site i18n-tt megatron queue quota get-default --queue-name root.demo_
 bytedcli --site i18n-tt megatron spark-ui summary get --app-id application_1234567890000_000001 -r sg
 bytedcli --site i18n-tt megatron spark-ui jobs list --app-id application_1234567890000_000001 -r sg
 bytedcli --site i18n-tt megatron spark-ui stages get --app-id application_1234567890000_000001 --stage-id 8 -r sg
+# 看一个 stage 的 task 耗时 / GC / spill 分位（p50/p95/max）：几 KB 就能判断倾斜，不用拉整张 task 表
+bytedcli --site i18n-tt megatron spark-ui task-summary get --app-id application_1234567890000_000001 --stage-id 8 -r sg
+# 最慢的 N 个 task（服务端排序），定位倾斜 task 所在 executor / host
+bytedcli --site i18n-tt megatron spark-ui tasks list --app-id application_1234567890000_000001 --stage-id 8 --limit 10 -r sg
 bytedcli -j --site i18n-tt megatron spark-ui sql get --app-id application_1234567890000_000001 --sql-id 29 -r sg
 bytedcli --site i18n-tt megatron spark-ui explain get --app-id application_1234567890000_000001 -r sg
 bytedcli --site i18n-tt megatron spark-ui explain get --app-id application_1234567890000_000001 --sql-id 29 -r sg
@@ -86,9 +93,15 @@ bytedcli -j --site i18n-tt megatron spark log-link list --app-id application_123
 bytedcli -j --site i18n-tt megatron flink log-link list --app-id application_1234567890000_000001 -r sg \
   --taskmanager-keyword container_123 --resolve-taskmanager-downloads
 
-# Flink JM/TM proxy log：列文件、tail JM 日志、从 JM 反查 TM URL 后 tail TM 日志
+# Megatron proxy 容器日志：列文件、tail / head 日志；--app-id 解析 AppMaster（Flink JM / Spark driver）容器
 bytedcli megatron log list --url 'https://megatron-log.example/yodel-logs/proxy/demo-host/demo-jm/demo-user?pod_name=demo-jm'
 bytedcli megatron log list --app-id application-demo --attempt latest
+# Spark driver syslog 的开头（启动期配置判定都在这里）；代理只能整档下载，本地截前 N 字节
+bytedcli megatron log get --app-id application_1234567890000_000001 --file syslog --head-bytes 4000000
+# 按 executor id 定位 Spark executor 容器日志（id 来自 spark-ui executors list；driver 用 `driver`）
+bytedcli --site i18n-tt megatron log list --app-id application_1234567890000_000001 --executor-id 12 -r sg
+bytedcli --site i18n-tt megatron log get --app-id application_1234567890000_000001 --executor-id 12 --file stderr --tail-bytes 65536 -r sg
+# Flink：从 JM 反查 TM URL 后 tail TM 日志
 bytedcli megatron log list --host demo-host:8092 --pod-id application-demo-attempt-1-master-1
 bytedcli megatron log get --url 'https://megatron-log.example/yodel-logs/proxy/demo-host/demo-jm/demo-user?pod_name=demo-jm' --file jobmanager.log --tail-bytes 4096
 bytedcli megatron log get --app-id application-demo --attempt 1 --file jobmanager.log --tail-bytes 4096

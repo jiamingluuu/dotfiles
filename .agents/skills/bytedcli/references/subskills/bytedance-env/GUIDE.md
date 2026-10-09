@@ -1,6 +1,6 @@
 ---
 name: bytedance-env
-description: "Operate ENV platform via bytedcli: list/search env, query governance service deploy templates, baseline create flow, deploy TCE/TCC, upgrade a PPE TCE service from a Git branch or SCM version, create/delete persistent branch-push auto-update pipelines, manage devices, deploy bytefaas (ByteCloud FaaS) services to PPE swimlanes, manage ENV ByteCopy services/instances/target addresses, and inspect tickets. Triggers: ENV 治理服务部署模版, deploy_template, 用 git 分支更新 PPE PSM, upgrade TCE from branch, env service upgrade-tce --branch, 把 bytefaas/FaaS 发到 PPE 泳道, 部署 FaaS 到 PPE, PPE 泳道挂载 FaaS, FaaS PPE deployment, deploy bytefaas to swimlane, env service deploy-bytefaas, env service upgrade-bytefaas, auto-update pipeline, 自动更新流水线, 删除自动更新流水线, ByteCopy, bytecopy, 添加目标地址, deploy-tce --dry-run, 部署预览, 预览部署 payload, list-scm-deps, SCM 依赖, 按 PSM 查 SCM."
+description: "Use bytedcli ENV for environment search, 治理服务部署模版/deploy_template, baseline creation, TCE/TCC deployment or deploy-tce dry-run payload previews, PPE TCE upgrades from Git branch/SCM version, persistent branch-push auto-update pipelines/自动更新流水线 (create/delete), devices/tickets, bytefaas/FaaS PPE 泳道部署/挂载/upgrades (upgrade-bytefaas), ByteCopy services/instances/target addresses, and list-scm-deps/SCM 依赖 by PSM."
 ---
 
 # bytedcli ENV

@@ -1,6 +1,6 @@
 ---
 name: bytedance-bpm
-description: "BPM 流程平台（O2O 项目）: 通过 bytedcli 查询工单、日志、评论、可执行操作，并推进或取消工单。"
+description: "用 bytedcli 查询 BPM/O2O 流程工单、日志、评论和可执行操作，推进或取消工单。"
 ---
 
 # BPM（bytedcli）

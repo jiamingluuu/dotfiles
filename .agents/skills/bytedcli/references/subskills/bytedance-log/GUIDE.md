@@ -1,6 +1,6 @@
 ---
 name: bytedance-log
-description: "Operate logs via bytedcli: search by PSM/LogID/instance/pod, inspect clusters, use Footprint TCE Sync for tail/head/ls/grep, and use `log footprint search` for supported viewlog types. Also download standalone Footprint pages or TTP/EU-TTP concrete mljob-log-proxy URLs only when no Primus application, History, role, pod, or Forge/Reckon Primus context is present. Use for log search, logid lookup, instance logs, Footprint/viewlog, TCE logs, 看 pod 日志, or standalone mljob URLs. Do not use for Primus redirect_log.html, Primus executor logs, or mljob URLs with Primus context; use bytedance-primus for the complete discovery and content path."
+description: "Use bytedcli logs for PSM/LogID/instance/pod search, clusters, TCE logs/看 pod 日志, Footprint TCE Sync tail/head/ls/grep and viewlog search; download standalone Footprint or TTP/EU-TTP concrete mljob-log-proxy URLs only without Primus application/History/role/pod/Forge/Reckon context. Primus redirect_log.html, executor logs or contextual mljob URLs require bytedance-primus discovery/content."
 ---
 
 # bytedcli Log
@@ -23,7 +23,7 @@ NPM_CONFIG_REGISTRY=http://bnpm.byted.org npx -y @bytedance-dev/bytedcli@latest 
 ## When to use
 
 - 按 PSM / 时间搜索日志
-- 按 LogID 查询日志
+- 按 LogID 查询单区域或多区域日志
 - 按接口维度查看 BytedTrace 总体性能分析
 - 按 LogID 查看 BytedTrace 调用树与节点延迟
 - 按环境 / 实例 / Pod 搜索日志
@@ -129,6 +129,9 @@ bytedcli --site boe --json log search-psm-log --psm "demo.psm" --vregion "US-BOE
 # LogID 查询（默认走 logid_prune 精确查询，无需 PSM 和时间参数）
 bytedcli log get-logid-log "20260202085428C91A145A63CB5F0B9D80" --vregion "China-North"
 
+# 多区域 LogID 查询（默认 logid_prune 模式；用 | 分隔并加引号）
+bytedcli --site cn log get-logid-log --logid sample-log-id --vregion 'China-North|China-North6' --output console
+
 # 保留日志中 object/array 形态的 JSON string，不按默认 prune 行为展开
 bytedcli log get-logid-log "20260202085428C91A145A63CB5F0B9D80" --vregion "China-North" --preserve-json-string
 
@@ -224,6 +227,8 @@ bytedcli log get-log-cluster "psm.name" --start "2026-02-02T08:00:00" --kv-filte
 - `search-psm-log` 和 `get-log-cluster` 支持 `--kv-filter key=value1|value2`，可重复传递多个过滤条件
 - `--idc` 在 `search-psm-log` 中会自动映射为 `_idc` 过滤
 - `get-log-cluster` 使用 `--kv-filter` 可按日志级别等字段过滤聚类结果，例如 `--kv-filter "level=ERROR|WARN"`
+- **多区域 LogID 查询**：`get-logid-log` 默认 `logid_prune` 模式支持 `--vregion 'China-North|China-North6'`，可同时带 `--psm example.service` 过滤。整个区域值必须加引号，避免 `|` 被 shell 当成管道；不要用逗号或重复 `--vregion`，重复选项只保留最后一个值。
+- 上述多区域写法依赖默认 SDK 路径（未通过 `ARGOS_SDK=0` 等配置关闭），不适用于 `--rolling` / `--dump` 或旧 HTTP 路径。`search-psm-log`、`search-log-matchers`、`get-log-cluster` 等命令没有相同的多区域约定，需要多区域结果时按区域分别执行。区域应属于所选 `--site` 的控制面；跨站点查询分别指定对应 `--site` 和区域。
 - `search-psm-log` / `get-logid-log` 使用 `--vregion`，`search-prod-instance-log` / `get-lane-instance-log` 使用 `--region`；在 `i18n-tt` 站点时，`search-psm-log` / `get-logid-log` 不提供 `--vregion` 的话默认使用 `Singapore-Central`
 - `log analysis performance` 使用 `--metrics-region`，默认 `cn`；它表示分析接口所使用的指标区域，不是 logservice 的 `--vregion`。
 - `trace-tree` 使用 `--region`（BytedTrace region），`cn` 站点支持 `China-North`、`China-North6`、`China-East`，默认仍为 `China-North`；`i18n-bd` 支持 `Asia-SouthEastBD`；它不是 logservice 的 `--vregion`

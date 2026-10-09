@@ -1,11 +1,11 @@
-# FTF Diff 查询参考
+# FTF Diff 查询与聚类标注参考
 
 目录：[用途](#用途) · [JSON 输出](#json-输出约定) · [查询命令](#查询命令) · [参数](#参数) · [字段口径](#字段口径) · [API 形态](#api-形态) · [验证](#验证方法)
 
 ## 用途
 
 新增 FTF diff 查询只能通过 TeslaX v1 gateway `/ftf/...` 获取证据。当前文档中的 assert `/nova/...` 深度 value/diff 明细属于仓库基线存量能力，仅为兼容已有命令保留并等待迁移；禁止新增命令复用或扩展这些接口，也不得在 v1 请求失败后自动回退。gateway 默认使用办公网 host，`BYTEDCLI_NETWORK_PROFILE=prod` 时按 FTF 分区切换到生产网 host；输出中的 Tesla-X task/flow 页面链接仍使用对应页面域名。
-当需要读取 task 上下文、diff cluster、flow diff、字段值、标注状态或相似 case 时，可以使用这些命令。
+当需要读取 task 上下文、diff cluster、flow diff、字段值、标注状态或相似 case，或对显式选中的 diff cluster 做人工标注时，可以使用这些命令。
 
 task/flow URL 查询命令会把 Tesla-X URL 解析成稳定 selector，再串联 task 上下文、diff cluster、record value、相似 case 和 outbound diff。`diff attribute get/list` 是精查某条 inbound record 的直接入口。
 解析后冻结 `site` 和 selector。URL 命令自身会自动派生站点；工作流仍须将解析结果与用户明确
@@ -13,7 +13,7 @@ task/flow URL 查询命令会把 Tesla-X URL 解析成稳定 selector，再串�
 后续若只传派生 ID，必须显式携带全局路由：cn 用 `--site cn`，zg 用
 `--site cn --vregion China-Pay`。只有裸 ID 且站点未知时先索取，不从 ID 或默认配置猜测。
 
-本文件只覆盖 diff 分析取数相关的查询命令和 API 形态，不覆盖 FTF task 创建、plan execute、retry、stop 等写操作。
+本文件覆盖 diff 分析取数以及显式聚类标注，不覆盖 FTF task 创建、plan execute、retry、stop 等其他写操作。
 
 查询输出的语义背景（录制回放模型、outbound 采集源差异、证据可见性边界）见 `domain-model.md`；本文件只覆盖命令、参数与 JSON/字段形态。
 
@@ -111,6 +111,20 @@ bytedcli --json ftf task diff-cluster get \
   --with-similar-cases \
   --with-outbound
 
+bytedcli --json --site cn ftf task diff-cluster mark \
+  --task-id <task_id> \
+  --direction inbound \
+  --similar-diff-ids <similar_diff_id_1>,<similar_diff_id_2> \
+  --annotation-op-type system-bug
+
+bytedcli --json ftf task diff-cluster mark \
+  --url "<ftf-task-url>" \
+  --direction outbound \
+  --similar-diff-ids <similar_diff_id> \
+  --annotation-op-type stability \
+  --remark <remark> \
+  --yes
+
 bytedcli --json ftf flow diff get \
   --url "<ftf-flow-diff-url>" \
   --with-values \
@@ -144,6 +158,15 @@ bytedcli --site cn ftf diff attribute list \
 ```
 
 使用 `get` / `list` 作为稳定入口。
+
+## 聚类标注
+
+`task diff-cluster mark` 只接受一个顶层 task selector、一个方向和 1 至 100 个显式 `similarDiffId`。公开写枚举只允许 `system-bug`、`biz-change`、`recognition-error`、`exception`、`confirming`、`stability`；不要传数字、查询专用枚举或 `direction=all`。
+
+- 默认仅实时查询并展示预检结果，不提交写请求。确认顶层 task ID、唯一 PSM task ID、方向、目标 ID、当前 `opType`、新标注和 remark 后，才可在同一命令后增加 `--yes`。
+- 预检会忽略 task URL 上的 `diffReasons` 筛选，确保每个显式 ID 都按所选方向完整核对；任一 ID 缺失、方向不符、匹配不唯一，或 task 映射到零个/多个 PSM 时整批失败且不写入。
+- `--yes` 最多提交一次方向对应的批量写请求，不拆批、不自动重试。请求超时、断连、权限拒绝、非 `200` 业务码或响应格式异常均为 `unknown`；不要直接重试，先用只读 `list/get` 查看当前状态，但回查不能证明本次写入结果。
+- `accepted` 仅表示服务返回明确的 `code=200` 且空 `data`，不表示每个 ID 都已修改，也不证明跨任务传播、异步刷新或 callback 已完成。
 
 `ftf diff similar --psm-task-id <id> --method <method>` 查询**单个 method** 下的 similar diff group（后端 `GET /nova/task/getMethodSimilarDiffs/?taskId=&method=`）。它与 `task diff-cluster list/get` 的分工是：
 
@@ -180,15 +203,18 @@ bytedcli --json --site cn ftf diff attribute get \
 
 URL harness 常用参数：
 
-| 参数                   | 适用命令                                                     | 说明                                                                                                                                                               |
-| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--url`                | `target parse` / `task *` / `flow diff get`                  | Tesla-X FTF task 或 flow diff URL。                                                                                                                                |
-| `--direction`          | `task analyze` / `task diff-cluster *`                       | `inbound`、`outbound` 或 `all`。                                                                                                                                   |
-| `--annotation-op-type` | `task evidence get` / `task analyze` / `task diff-cluster *` | `unannotated`、`all`、语义化标注原因，或逗号分隔的多值；显式传参优先于 URL `diffReasons`。`task evidence get` / `task analyze` 在无 URL 筛选时默认 `unannotated`。 |
-| `--with-values`        | `task analyze` / `task diff-cluster get` / `flow diff get`   | 拉取 base/replay value 摘要。                                                                                                                                      |
-| `--sample-values`      | `task analyze` / `task diff-cluster get`                     | 每个 cluster 的代表性 value diff 样本数。                                                                                                                          |
-| `--with-similar-cases` | `task analyze` / `task diff-cluster get`                     | 拉取并汇总 inbound 相似 case。                                                                                                                                     |
-| `--with-outbound`      | `task analyze` / `task diff-cluster get` / `flow diff get`   | 拉取 outbound diff 上下文。                                                                                                                                        |
+| 参数                   | 适用命令                                                     | 说明                                                                                         |
+| ---------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `--url`                | `target parse` / `task *` / `flow diff get`                  | Tesla-X FTF task 或 flow diff URL。                                                          |
+| `--direction`          | `task analyze` / `task diff-cluster list/get`                | `inbound`、`outbound` 或 `all`；`mark` 只允许单一 `inbound` 或 `outbound`。                  |
+| `--annotation-op-type` | `task evidence get` / `task analyze` / `task diff-cluster *` | 查询命令接受 `unannotated`、`all`、语义值或多值；`mark` 只接受六个公开写枚举，且不接受数字。 |
+| `--similar-diff-ids`   | `task diff-cluster mark`                                     | 必填，逗号分隔的显式 ID；去重后必须为 1 至 100 个。                                          |
+| `--remark`             | `task diff-cluster mark`                                     | 可选；空白值不发送。                                                                         |
+| `--yes`                | `task diff-cluster mark`                                     | 缺省只预览；传入后才提交一次批量标注请求。                                                   |
+| `--with-values`        | `task analyze` / `task diff-cluster get` / `flow diff get`   | 拉取 base/replay value 摘要。                                                                |
+| `--sample-values`      | `task analyze` / `task diff-cluster get`                     | 每个 cluster 的代表性 value diff 样本数。                                                    |
+| `--with-similar-cases` | `task analyze` / `task diff-cluster get`                     | 拉取并汇总 inbound 相似 case。                                                               |
+| `--with-outbound`      | `task analyze` / `task diff-cluster get` / `flow diff get`   | 拉取 outbound diff 上下文。                                                                  |
 
 `task diff-cluster get` 的 value 相关输出：
 

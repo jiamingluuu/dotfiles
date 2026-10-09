@@ -16,6 +16,9 @@ bytedcli scm repo artifact get --version-id 9876
 # US-TTP：预览 / 提交既有 SCM 版本的 CDN 静态资源上传
 bytedcli --site us-ttp scm repo artifact upload-static --repo-id 123 --version 1.0.0.1
 bytedcli --site us-ttp scm repo artifact upload-static --repo-id 123 --version 1.0.0.1 --yes
+bytedcli scm repo version get "byteapi/command/bytedcli" --version 1.0.0.1
+bytedcli scm repo version download "byteapi/command/bytedcli" --version 1.0.0.1 --output ./bytedcli.tar.gz
+bytedcli scm repo version download "byteapi/command/bytedcli" --latest --output ./bytedcli-latest.tar.gz
 # Version compare — 列两个构建版本之间的精确 commit 范围（比 git log --since 准：用 build manifest pin 的 SHA，不受 force-push / merge time 漂移影响）
 bytedcli scm repo version compare --repo-id 379649 --base 2.0.4.9494 --target 2.0.4.9656
 bytedcli scm repo version compare "byteapi/command/bytedcli" --base 1.0.0.1686 --target 1.0.0.1720 --first-parent --page-size 20
@@ -61,6 +64,28 @@ bytedcli --site cn --json scm webshell prepare --record-id 301 --step building
 - 默认只读查询版本并预览完整 POST body，显式 `--yes` 才提交。SCM 读取与 Goofy 上传使用各自站点和 ByteCloud JWT。
 - JSON 返回 `dry_run`、`submitted`、`previous_status`、`request` 和 `next_command`。`submitted: true` 不等于 CDN 上传完成；按 `next_command` 查询版本状态。
 - 不自动重试 POST，不轮询等待；网络失败时先确认版本状态再重试。
+
+## `scm repo version get`
+
+按仓库名或 `--repo-id` 查询单个版本详情：
+
+```bash
+bytedcli scm repo version get "byteapi/command/bytedcli" --version 1.0.0.1
+bytedcli scm repo version get --repo-id 533180 --version 1.0.0.1
+```
+
+## `scm repo version download`
+
+下载 SCM 归档文件，固定版本用 `--version`，最新版本用 `--latest`：
+
+```bash
+bytedcli scm repo version download "byteapi/command/bytedcli" --version 1.0.0.1 --output ./bytedcli.tar.gz
+bytedcli scm repo version download "byteapi/command/bytedcli" --latest --output ./bytedcli-latest.tar.gz
+bytedcli scm repo version download "byteapi/command/bytedcli" --version 1.0.0.1 --arch aarch64 --output ./bytedcli-arm.tar.gz
+bytedcli scm repo version download "byteapi/command/bytedcli" --version 1.0.0.1 --resource --output ./bytedcli-res.tar.gz
+```
+
+默认使用当前 site 对应的 Luban SCM 归档域名；需要指定下载域名时使用 `--archive-site byted-cn|ttp|ttp-office|eu-ttp`。本地目标文件已存在时默认拒绝覆盖，确认覆盖时加 `--force`。
 
 ## `scm repo diagnose` 约定
 

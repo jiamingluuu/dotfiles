@@ -35,6 +35,23 @@ bytedcli --site i18n-tt megatron app get --app-ids application_1234567890000_000
 bytedcli --site i18n-tt megatron app get --app-ids application_1234567890000_000001 application-abc-123 -r va
 ```
 
+### app locate
+
+Resolve one application id to the identifiers other tools need, parsed from Megatron `application_tags`: the Dorado task / project / instance that submitted it, TQS id, Spark version, live Spark UI root (running apps) and Spark History REST root, plus the AppMaster container log directory. Use it as the first step of a Spark diagnosis instead of reading the raw tag blob from `app get`.
+
+```bash
+bytedcli megatron app locate --app-id <appId> [-r <region>]
+```
+
+- `--app-id <appId>`：YARN application ID。
+- JSON 输出字段：`application_id`、`state` / `final_status`、`queue_name`、`cluster_name`、`user_name`、`dorado.{task_id,project_id,instance_id,task_type,task_time,task_trigger_type,attempt_id,is_backfill,link}`、`tqs_id`、`spark_version`、`spark_ui.{live_url,history_url}`（缺失时为 `null`）、`am_container_logs`、`tracking_url`、`tags`（全部解析后的 tag）。
+- `spark_ui.history_url` 可直接作为 `spark-ui ... --spark-ui-url` 的输入；`am_container_logs` 可直接作为 `megatron log list/get --url` 的输入。
+- Megatron app 元数据按 region 保存且在应用结束数天后过期；找不到时返回 `MEGATRON_APP_NOT_FOUND`。
+
+```bash
+bytedcli -j --site i18n-tt megatron app locate --app-id application_1234567890000_000001 -r sg
+```
+
 ### app search
 
 ```bash
@@ -190,6 +207,8 @@ bytedcli -j --site i18n-tt megatron flink log-link list \
 bytedcli megatron spark-ui jobs list        --app-id <appId> [--spark-ui-url <url>] [--spark-history-url <url>] [--timeout-ms <ms>] [-r <region>]
 bytedcli megatron spark-ui stages list     --app-id <appId> [-r <region>]
 bytedcli megatron spark-ui stages get      --app-id <appId> --stage-id <n> [-r <region>]
+bytedcli megatron spark-ui task-summary get --app-id <appId> --stage-id <n> [--attempt-id <n>] [--quantiles <list>] [-r <region>]
+bytedcli megatron spark-ui tasks list      --app-id <appId> --stage-id <n> [--attempt-id <n>] [--sort-order runtime-desc|runtime-asc|id] [--limit <n>] [-r <region>]
 bytedcli megatron spark-ui executors list   --app-id <appId> [--all] [-r <region>]
 bytedcli megatron spark-ui sql list         --app-id <appId> [-r <region>]
 bytedcli megatron spark-ui sql get          --app-id <appId> --sql-id <n> [-r <region>]
@@ -217,7 +236,9 @@ bytedcli megatron spark-ui proposal-signals build \
 - `-r, --region <region>`：用于自动发现 UI URL；显式 URL 时只保留为上下文，不做 Megatron app-info region 校验。
 - 子命令（`<resource> <action>` 结构，末级为标准动词）：
   - `jobs list`：列出全部 job（task / failed-task 计数、状态、提交时间）。
-  - `stages list`：列出全部 stage；`stages get --stage-id <n>`：下钻到该 stage 的 task 级明细（冷启动较慢，会先提示）。
+  - `stages list`：列出全部 stage；`stages get --stage-id <n>`：下钻到该 stage 的 task 级明细（冷启动较慢，会先提示；会内联全部 task，几万 task 的 stage 可达数十 MB）。
+  - `task-summary get --stage-id <n>`：该 stage attempt 的 task 指标分位（`/taskSummary`：duration、executorRunTime、executorCpuTime、jvmGcTime、schedulerDelay、peakExecutionMemory、memory/diskBytesSpilled 等），默认分位 `0.0,0.25,0.5,0.75,0.9,0.95,1.0`，可用 `--quantiles` 覆盖；History Server 在服务端计算，返回体只有几 KB。判断倾斜（p95 与 max 差距）、GC 或 spill 是否集中，优先用它而不是 `stages get`。
+  - `tasks list --stage-id <n>`：该 stage attempt 的 task 行（`/taskList`），服务端按 `--sort-order` 排序（默认 `runtime-desc`，即最慢在前），`--limit` 控制条数（默认 20）；JSON 输出带 `limit` 与 `truncated`（页满时为 `true`，需调大 `--limit`）。用它定位最慢 task 的 executor / host / errorMessage。
   - `executors list`：列出 executor；`--all` 额外包含已退出（dead）executor，并带 GC 时间、shuffle 读写量。文本模式额外打印 executor 退出原因分类（OOM / 驱逐抢占 / 正常缩容），可直接据此确认是否 OOM，无需另查 container log。
   - `sql list`：列出 SQL query；CLI 会通过 Spark History `offset/length` 自动翻页，避免默认 20 条导致遗漏主 SQL；`--json` 返回完整 `planDescription`（physical plan）。
   - `sql get --sql-id <n>`：下钻到单条 SQL execution 详情；`--json` 返回完整 `nodes[].metrics`（coalesced partitions、written files、output rows 等决定性证据只存在于此，不在 `planDescription` 文本里）。
@@ -234,6 +255,8 @@ bytedcli megatron spark-ui proposal-signals build \
 bytedcli --site i18n-tt megatron spark-ui summary get --app-id application_1234567890000_000001 -r sg
 bytedcli --site i18n-tt megatron spark-ui jobs list --app-id application_1234567890000_000001 -r sg
 bytedcli --site i18n-tt megatron spark-ui stages get --app-id application_1234567890000_000001 --stage-id 8 -r sg
+bytedcli --site i18n-tt megatron spark-ui task-summary get --app-id application_1234567890000_000001 --stage-id 8 --quantiles 0.5,0.95,1.0 -r sg
+bytedcli -j --site i18n-tt megatron spark-ui tasks list --app-id application_1234567890000_000001 --stage-id 8 --limit 10 -r sg
 bytedcli --site i18n-tt megatron spark-ui executors list --app-id application_1234567890000_000001 --all -r sg
 bytedcli -j --site i18n-tt megatron spark-ui sql list --app-id application_1234567890000_000001 -r sg
 bytedcli --site i18n-tt megatron spark-ui explain get --app-id application_1234567890000_000001 -r sg

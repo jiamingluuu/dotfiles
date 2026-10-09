@@ -280,8 +280,8 @@ VA / Maliva / 生产开发机上，调 i18n-tt / i18n-bd / sg 命令前先 `expo
 - Flink / Godel 流批任务的只读根因诊断、JM 静默、启动与 failover、checkpoint、Lag、反压、吞吐、延迟、倾斜、资源和配置咨询：`flink` / `bytedance-flink`
   - 例子：“诊断这个 Dorado Flink 任务为什么持续 Lag”“确认 JM 静默还是宿主机不可用”“分析 checkpoint 变慢的决定性证据”
   - 先固定 task、application attempt、job、版本和故障时间窗；自动流程只读取证，证据不足时输出 `PARTIAL/UNKNOWN`，不自动重启、扩缩容、改配置或重置 offset。
-- TEA / tea-next 看板、报表、快照、DSL、analysis 查询、行为细查、事件元数据、事件上报，以及 CN Titan 项目角色查询与新成员邀请：`tea` / `bytedance-tea`
-  - 例子：“读这个 TEA 链接的数据”“从 tea-next 快照拿 DSL 并查询”“查某个事件按维度分组”“查询 behavior-detail 行为流”“列出项目可分配角色”“邀请新成员并绑定角色”
+- TEA / tea-next 看板、报表、快照、DSL、analysis 查询、行为细查、事件元数据、事件上报、SG LLM workbench operations-agent 的 agent 会话，以及 CN Titan 项目角色查询与新成员邀请：`tea` / `bytedance-tea`
+  - 例子：“读这个 TEA 链接的数据”“从 tea-next 快照拿 DSL 并查询”“查某个事件按维度分组”“查询 behavior-detail 行为流”“看 agent 会话每一步调了哪些工具”“列出项目可分配角色”“邀请新成员并绑定角色”
   - tea-captain SG 链接做 `get-dsl | query` 时，query 阶段也传同一个 `--url`；完整说明见 [references/subskills/bytedance-tea/GUIDE.md](references/subskills/bytedance-tea/GUIDE.md)
 - NVQoS / VQoS 空间、数据集与智能归因：`nvqos` / `bytedance-nvqos`
   - 例子：“列出某个 NVQoS 空间下的数据集”“触发 rootcause 归因分析”“按 Filters JSON 发起归因”
@@ -293,7 +293,7 @@ VA / Maliva / 生产开发机上，调 i18n-tt / i18n-bd / sg 命令前先 `expo
 - 搬站平台项目、组件、消费者和流水线查询：`move-engine`
   - 例子：“按 PSM 查搬站项目”“列出项目下的 TCE item”“查 TCE/FaaS 消费组”“按 UUID 查搬站流水线”
   - 仅支持 `--site cn|i18n-tt`；一期命令全部只读
-- Watchdog Diag 合规区 RPC/DB 断言：`watchdog` / `bytedance-watchdog`
+- Watchdog Diag HTTP/FaaS、日志查询与合规区 RPC/DB 断言：`watchdog` / `bytedance-watchdog`
   - 例子：“BDEE 打不了 US-TTP 的 RPC/DB，用 Diag 在合规区断言字段是否等于预期”“RDS 打 US-TTP2/useast8 / EU-TTP2/no1a”
   - 与 ByteDog（`bytedog`）不是同一产品。BDEE 无法直接调用 US-TTP / EU-TTP 内的 RPC；Diag 在合规区内执行并对结果断言。ROW 可读回包用来写 `--assert`；合规区只回是否命中
 - ByteGraph V3 API 多 Vregion 元数据查看与 Gremlin Extended 只读查询：`bytegraph` / `bytedance-bytegraph`
@@ -339,6 +339,8 @@ VA / Maliva / 生产开发机上，调 i18n-tt / i18n-bd / sg 命令前先 `expo
 - 部署、环境、ByteCopy、服务树、TrafficRoute PrivateZone、域名治理、对象存储、云函数资源、Ent Platform Storage IAC 新表 workflow 提交/已有表 entry 导入/字段标注校验与 MOSS 测试物料管理平台查询：`tce`、`env`（子组：`site`/`service`/`bytecopy`/`device`/`ticket`）、`bytetree`、`ent`、`trafficroute`、`goofy`、`netlink`、`neptune`、`tos`、`faas`、`volcano`、`bytecloud`、`moss`
   - 例子：”查服务实例””看发布单””更新配置””做一个 Goofy preview””通过 Ent Platform 提交新表 workflow””导入已有 RDS 表到 Storage IAC entry””查询 TrafficRoute PrivateZone 的 zone / record / resolver”
   - FaaS 中的“BOE sandbox”“FaaS sandbox 测试环境”或 `faas-sandbox.byted.org` 必须路由为 `bytedcli --site sandbox faas ...`；该站点直连 sandbox 控制面并复用 BOE JWT。
+- 火山账号自身账单（费用中心，账号视角）：按自定义时间范围（整月、跨月日期段、精确到分钟的时段、含当天并标注截至时间）查询应付费用，按天、产品、项目、计费项、实例下钻并对账：`volcano` / `bytedance-volcano`；内部成本中心、服务树或团队成本、预算与成本异动归因（BABI 口径）仍使用 `babi`
+  - 例子：“查这个火山账号 9 月的费用并对账”“看今天截至现在花了多少钱”“10 月 1 日到现在每天各产品的费用”“昨天 10 点到 12 点的费用”
 - CloudDev BOE 泳道开发实例创建、代码同步部署与本地 space 绑定管理：`clouddev`（子组：`instance`/`space`）
   - 例子：“在 BOE 泳道给这个 PSM 创建一个 CloudDev 开发实例”“把本地代码同步到这个 CloudDev 实例并跑起来”“改完代码重新同步 reload 一下”“停掉这个 CloudDev 实例”“列出本地记住的 CloudDev space”
 - Devbox 开发机（BOE）目录浏览与创建（GPU 走 xflow 审批）、生命周期管理、SSH/SCP、IDE/监控/Web 终端连接、快照、云盘扩容、Computer Use 沙箱：`devbox`（子组：`snapshot`/`volume`/`xflow`/`sandbox`）、`bytedance-devbox`
@@ -357,7 +359,7 @@ VA / Maliva / 生产开发机上，调 i18n-tt / i18n-bd / sg 命令前先 `expo
   - 例子：“查询 workspace 可用的 VM 镜像并创建虚拟机”“启动、停止或重启 Kross VM”“通过 loopback 端口转发访问 VM 的 SSH/RDP”“创建 job workload”“通过 webshell 执行命令”“上传或下载 workload 文件”
 - GPCP（SYS-OnePlatform）伞平台：Aegis 工单只读列表/详情用 `gpcp aegis issue list/get`；SDP 合规诊断用 `gpcp sdp`；MSC 应用、BPEA DFID、三方 SDK API、DS TPSDK 查询及已有 API 的受限治理注册用 `gpcp msc`
   - 例子：“按 repo / commit / rule 查 Aegis 工单”“看 Aegis ticket 详情”“给 CloudIDE workspace 创建 SDP 实例”“通过 SDP 跑 `tail -n 200`”“按中英文应用名找 MSC app id”“查询 BPEA DFID”“按 class name 查组件归属”
-- 日志、Footprint/TCE pod 文件日志、没有 application/History 上下文的独立 concrete 日志 URL 下载、监控、告警、Dashboard、Kubernetes 对象生命周期 trace、App 异常趋势、App/OS symbol、Redis / ABase / Kafka / RocketMQ / EventBus、Vela 单机指标：`log`（Footprint 入口是 `log footprint`）、`apm`（子组：`service`/`redis`）、`kelemetry`、`slardar`（子组：`web`/`app`/`os`）、`vela`（子组：`one-machine`）、`cache`、`abase`、`bmq`、`eventbus-cn`、`rmq`（含已有集群 Topic 创建审批与 PSM Topic 权限申请；创建默认 dry-run，`--yes` 提交审批）
+- 日志、Footprint/TCE pod 文件日志、没有 application/History 上下文的独立 concrete 日志 URL 下载、监控、告警、Dashboard、Kubernetes 对象生命周期 trace、App 异常趋势、App/OS symbol、Redis / ABase / Kafka / RocketMQ / EventBus、Vela 单机指标：`log`（Footprint 入口是 `log footprint`）、`apm`（子组：`service`/`redis`）、`kelemetry`、`slardar`（子组：`web`/`app`/`os`）、`vela`（子组：`one-machine`）、`cache`、`abase`、`bmq`、`eventbus-cn`、`rmq`（含 Mirror 同步链路查询、已有集群 Topic 创建审批与 PSM Topic 权限申请；创建默认 dry-run，`--yes` 提交审批）
   - 例子：”查这个 logid””下载这个独立 Footprint / mljob-log-proxy 日志 URL””tail 这个 Footprint pod 日志文件””先看某个接口的总体瓶颈””按 logid 看链路各节点延迟””查某个 K8s 对象的 Kelemetry trace””看 Redis 大 key””分析这个告警页””查这个 Vela one-machine 页面里的指标””根据 Slardar dashboard URL 看看板配置或改标题””用 Slardar App issue URL retrace native 栈””用 Slardar OS issue URL 解析主线程 native 栈””搜索 RocketMQ topic””查看 RocketMQ consumer group 列表””在已有 RMQ 集群上先 dry-run 预览 Topic 创建审批，确认后用 `--yes` 提交””给 example.service.consumer 申请 RocketMQ Topic 的消费权限””为 PSM 申请 RMQ producer 权限前先展开精确 Topic 范围”
 - EOpsX 电商运维：服务元数据/服务树/调用对强弱依赖（meta）、报警事件列表（alarm）、变更事件中心（event）、稳定性度量与事故数/业务 SLA（fatal）、限流子配置（limit）、VOC 客诉感知预警（voc）、链路 SLA 与不可用事件（sla）、BCP 业务异常检测/错账（bcp）、风险巡检/风险项/风险工单（risk）、归因 Skill 开发/草稿管理/远端测试与 Session 调试（dev）：`eopsx` / `bytedance-eopsx`
   - 例子：“查电商业务线树”“列某个 PSM 的报警事件”“看这段时间的变更事件”“查业务 SLA 总结”“查某条链路的不可用事件”“搜 BCP 核对规则”“列风险巡检工单”
@@ -373,7 +375,7 @@ VA / Maliva / 生产开发机上，调 i18n-tt / i18n-bd / sg 命令前先 `expo
   - 例子：“按仓库筛选任务”“按 PSM 和仓库筛选扫描”“按 Task ID 拉全部缺陷”“按 Bug ID 找报告和构建”“读取 ASAN 原始报告”“按 Build ID 查主仓库与依赖仓库 commit”
   - URL 先按 path / query 区分 Task、Run、Bug，再将完整链接传给对应命令的 `--url`；host 决定 site。关联 ID 的后续查询沿用结果中的 `data.site`。
 - Libra / DataTester A/B 实验、指标组、指标组模版：`libra`
-  - 例子：“看这个实验详情”“查这个 flight 的报告”“根据 template 页面 URL 查看 metric-group template”
+  - 例子：“看这个实验详情”“查这个 flight 的报告”“按标签列出某个 App 下的指标组”“根据 template 页面 URL 查看 metric-group template”
 - Pearl 平台 Nova 应用/来源/国家发现、任务查询与承接 schema 查询（**只读**，无写操作）：`pearl nova application|source|country` 与 `pearl nova application schema` 与 `pearl nova source task`；DMP 人群包规模与占该国比例：`pearl dmp set get`（加 `--refresh` 重算并带数据分区日期）；SSAP Case Center 风控 case 检索与 appeal/violation 详情（**只读**）：`pearl case list|get`
   - 例子：“列出 US 的 Nova source”“按 application_key 找 source”“查看 Nova 任务详情”“按 schema_id 查承接落地页配置”“查某个达人的申诉 case”“按 case id 看申诉与处罚详情”（写操作如编辑/审核提交/case 处置不支持，需人工在 console 操作）
 - Dolphin 动态决策平台查询、settings、写操作和发布都使用 `dolphin` / `bytedance-dolphin`；已建模操作优先语义命令，未显式建模的 OpenAPI 接口才使用内建 `bytedcli dolphin api execute ...`
@@ -416,6 +418,7 @@ VA / Maliva / 生产开发机上，调 i18n-tt / i18n-bd / sg 命令前先 `expo
 - ByteDoc/MongoDB 业务代码 review、提交前检查与 MR diff 审查：发现业务查询后确认目标并请求只读查库授权，结合线上索引、可用 schema 和版本判断风险: [bytedance-bytedoc](references/subskills/bytedance-bytedoc/GUIDE.md)
 - ByteLink、liveim、unicast、multicast、broadcast，查询租户/方法/重保房间/WRDS/WSS、app/namespace/uplink 平台元数据，或诊断设备连接、房间消息发送/推送、消息 ACK、组播订阅快照与 liveim log ID Trace 反查: [bytedance-bytelink](references/subskills/bytedance-bytelink/GUIDE.md)
 - OpsData、运维数据资产平台、合适数据源、数据集 Schema、服务记录或运维知识检索；先发现实时目录与契约，再按数据集支持能力使用 GraphQL、RAG 或 OpenViking 只读查询: [bytedance-bytestable-opsdata](references/subskills/bytedance-bytestable-opsdata/GUIDE.md)
+- CDN 域名配置、带宽/流量/QPS/状态码指标、文件上传下载与团队空间权限：`cdn`；指标使用 `cdn metric query`，按 `--site cn|i18n-tt|us-ttp` 查询: [bytedance-cdn](references/subskills/bytedance-cdn/GUIDE.md)
 - CodeVision、跨仓库代码证据、授权仓库发现、CodeGraph 查询、源码文件定位与有界读取: [bytedance-codevision](references/subskills/bytedance-codevision/GUIDE.md)
 - 本机豆包桌面端、个人版 / 豆包工作、当前账号状态、已渲染会话/消息及确认后纯文本发送；实验性回环 CDP 入口，不复用企业 SSO、不允许匿名降级发送、不自动改权限: [bytedance-doubao](references/subskills/bytedance-doubao/GUIDE.md)
 - ByteDTS 原生同步任务 ID、`/bytedts/datasync/detail` 链接、`DescribeTaskInfo`、任务状态或完整源表到目标表映射查询；TT-DTS / DES-MQ 通道改用 `bytedance-tt-dts`，Dorado DTS 元数据改用 `bytedance-dorado`: [bytedance-dts](references/subskills/bytedance-dts/GUIDE.md)

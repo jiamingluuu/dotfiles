@@ -1,0 +1,3 @@
+interface:
+  display_name: "Readable Python"
+  short_description: "Write straightforward Python without overengineering"

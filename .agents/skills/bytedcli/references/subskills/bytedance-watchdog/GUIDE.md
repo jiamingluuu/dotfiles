@@ -1,11 +1,11 @@
 ---
 name: bytedance-watchdog
-description: "Call RPC/DB in US-TTP and EU-TTP compliance regions through Watchdog Diag and assert whether results match expectations. BDEE cannot invoke those RPCs directly. Generate request bodies with api-test gen-request. Distinct from ByteDog profiling (`bytedog`)."
+description: "Use Watchdog Diag for HTTP/FaaS calls, LogID or keyword log queries, and compliance-region RPC/DB assertions. Generate RPC bodies with api-test gen-request. Distinct from ByteDog profiling (`bytedog`)."
 ---
 
 # bytedcli Watchdog Diag
 
-BDEE 无法直接调用 US-TTP、EU-TTP 内的 RPC。Watchdog Diag 用来在合规区内执行 RPC/DB，并对结果断言，判断表现是否符合预期。当前 CLI 覆盖 RPC 与 RDS。
+BDEE 无法直接调用 US-TTP、EU-TTP 内的 RPC。Watchdog Diag 可在区域内调用 HTTP/FaaS、查询日志、执行 RPC/RDS，并对结果断言。命令入口为 `watchdog http execute`、`watchdog log search`、`watchdog rpc execute` 和 `watchdog db execute`。
 
 Watchdog Diag 与 ByteDog（`bytedog`）是不同产品。
 
@@ -15,13 +15,27 @@ Watchdog Diag 与 ByteDog（`bytedog`）是不同产品。
 - `--json` 是全局参数，放在 `watchdog` 前
 - `--env` 默认 `prod`。打 PPE 泳道时传 `--env ppe_demo`（与 `api-test rpc-call --env` 同一写法）：CLI 会写入 `Base.TrafficEnv.Open=true`、`Base.TrafficEnv.Env`，并带 `x-tt-env` / `x-use-ppe`
 - 请求体不要手写 schema。先走 `bytedance-api-test` skill 的 `api-test gen-request` / `list-apis`，把生成的 JSON 存成 `--body-file`
-- 合规区（US-TTP / EU-TTP，含 USEASTRED）Diag **不回业务明文**，只回断言是否命中。`--assert` 应对应明确业务预期；验证接口状态时可断言 `BaseResp.StatusCode`，验证内容时应断言具体业务字段
+- 合规区（US-TTP / EU-TTP，含 USEASTRED）RPC/DB **不回业务明文**，只回断言是否命中。HTTP 无断言时最多返回结构，日志可返回服务端已允许的 `complianceLogs`；HTTP/日志的 `--assert` 在合规区执行，结果只回是否命中
 - ROW（`--site i18n-tt --region sg1` 或 RDS `--region Singapore-Central/alisg`）可以返回 `data`，用来对照写出合规区要用的 `--assert`
 
 ## Quick start
 
 ```bash
 bytedcli watchdog region list
+
+# HTTP/FaaS：ROW 可在 --json 中查看 data；合规区用断言
+bytedcli --json --site i18n-tt watchdog http execute \
+  --region sg1 --url https://api.example.com/demo --method GET --query 'id=demo-id'
+bytedcli --site us-ttp watchdog http execute \
+  --region USTTP --url https://api.example.com/demo --method POST \
+  --body-file ./demo-request.json --header 'Content-Type: application/json' \
+  --assert 'status = ok'
+
+# 日志：按 PSM/关键词或 LogID 查询
+bytedcli --json --site i18n-tt watchdog log search \
+  --region sg1 --psm example.service.api --include-keyword timeout --range 1h
+bytedcli --json --site us-ttp watchdog log search \
+  --region USTTP --log-id demo-log-id
 
 # 0. 请求体：走 api-test skill，不要自己编 schema
 bytedcli --json api-test gen-request \
@@ -172,6 +186,8 @@ snowflake ID 当 **值** 时保持十进制字符串，不要先 `Number()`。
 
 ## Agent Guidance
 
+- HTTP `--url` 必须是 HTTPS 完整 URL；TTP FaaS 使用生产网 URL。`--body` / `--body-file` 二选一，JSON 对象/数组自动按 `j`+Base64 编码，普通文本按 `s`+原文；需要强制指定时用 `--body-format json|text`。`--header 'K: V'` 和 `--query 'k=v'` 可重复。`--psm` 配合 `--cluster` / `--vdc` 可指定实例，`--inject-jwt` 让 Diag 注入 JWT，`--raw-response` 请求 HTTP 状态/头/body；TTP POST 的 BPM allowlist 提示在 `extra_msgs` 或错误详情中
+- 日志检索两种方式：`--log-id` 查单条 LogID；或重复 `--psm` 并用 `--include-keyword` / `--exclude-keyword` 查时间范围。默认过去 1h；显式时间用 Unix 秒 `--start` / `--end`，不要与 `--range` 混用。`--page-size` 默认 20、最大 1000，`--include-operator` / `--exclude-operator` 默认 AND、可选 OR，`--no-case-sensitive` 关闭大小写匹配。返回内容看 `--json data`，合规区仅透出后端允许的日志
 - BDEE 不能直连 US-TTP / EU-TTP 的 RPC/DB；合规区验证走 Watchdog Diag 断言，RPC 不走 `api-test rpc-call`
 - RPC `--region` 同时接受 Region 名和 VDC：`sg1`/`alisg`/`my`、`id1a`、`USTTP`/`useast5`、`USTTP2`/`useast8`、`USEASTRED`/`useast2b`、`EUTTP2`/`no1a`、`EUTTP`/`EU-TTP`/`ie`、`EU-Compliance2`/`ie2`、`EU-Compliance`/`de`
 - EU RPC 的 ie2、ie、de 自动发送对应 VDC；`--use-direct-rpc` 默认不启用，后端提示 watchman 权限问题时可按提示尝试。地区说明、实例缺失排查与示例见 [EU RPC 地区与调用方式](references/watchdog.md#eu-rpc-地区与调用方式)。

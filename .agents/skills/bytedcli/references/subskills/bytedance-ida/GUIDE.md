@@ -77,12 +77,18 @@ A Deep Research run takes minutes, which outlasts most agent tool timeouts. `--n
 
 ```bash
 bytedcli ida deep-research create --agent-id <agent_id> --content "<question>" --no-wait
+# a long question, or one with quotes, backticks or $: read it from a file
+bytedcli ida deep-research create --agent-id <agent_id> --content-file ./question.md --no-wait
 # → session_id and task_id, plus the exact command to collect the answer
 
 bytedcli ida deep-research get --session-id <session_id> --task-id <task_id>
+# keep reading until the turn settles, for at most 90 s by default
+bytedcli ida deep-research get --session-id <session_id> --task-id <task_id> --wait
 ```
 
 `get` reads exactly one turn and takes both ids; there is no default turn. The `task_id` that `create --no-wait` printed is the one to pass, and `terminal_status` in the output is that turn's own.
+
+`--content-file` sends the file's text as the question with only leading and trailing whitespace trimmed. Use it instead of pasting a long question into `--content "..."`, where the shell interprets quotes, backticks and `$` before bytedcli sees the text. The file must be a regular UTF-8 text file of at most 256 KiB. Pass one of `--content` and `--content-file`, not both.
 
 **One submission, more than one task.** Measured on live sessions: every `create` that ran past about a minute — with or without `--no-wait` — ended up with a second task in the session, started by iDA some 40–60 seconds after the first, and both ran to completion. The id `create` returns is real and finishes; it is just not the only one. So:
 
@@ -90,13 +96,19 @@ bytedcli ida deep-research get --session-id <session_id> --task-id <task_id>
 - before submitting the same question again, list the session — a second submission on top of a run still going means a third and fourth task;
 - a prompt with side effects (writing a document, building a dashboard) must tolerate being executed twice.
 
-**Deciding whether to poll again.** Poll on this turn's own output:
+**Deciding whether a turn has settled.** Judge it on this turn's own output:
 
 1. **`answer` or `artifacts` is non-empty** → that is this turn's own output. Stop. This is the same test `deep-research create` stops on.
 2. **`terminal_status` is one of** `success` `succeeded` `completed` `failed` `failure` `error` `cancelled` `canceled` `killed` `timeout` (compare case-insensitively) → the turn ended. Stop.
-3. **Anything else, including `terminal_status: null`** → poll again.
+3. **Anything else, including `terminal_status: null`** → not settled yet.
 
 Treat an unrecognized `terminal_status` as still running, never as finished: guessing the other way ends the wait mid-write and reports an empty run.
+
+`get --wait` applies exactly this rule: it reads the turn, pauses, and reads again until the turn settles, then returns the same output as a single read. The pauses start at 10 seconds and stretch to 30 over a long wait. Its budget is `--timeout-ms`, 90 seconds by default so the call returns inside a two-minute tool timeout. A read that gets no response or a 408, 425, 429, 500, 502, 503 or 504 is retried within the budget; any other read error, including a response that is not the expected JSON, ends the wait at once. Past the budget it fails with `IDA_WAIT_TIMEOUT` while the turn keeps running on iDA, and the message says which case it is:
+
+- **The turn did not settle** (`details.reads_completed` above 0, `details.last_read_error` null) → the hint carries the command to keep waiting and the `deep-research list` command for checking the task id.
+- **The last session read failed** (`details.last_read_error` set; the message quotes it) → whether the turn settled is unknown. Run `get` without `--wait` to see the read error, and wait again once it clears.
+- **No session read finished within the budget** (`details.reads_completed` 0, no read error) → the budget is shorter than one read of this session; the hint carries a larger `--timeout-ms`.
 
 **An empty read does not mean there is no task.** iDA rewrites its messages while a run progresses, and for part of that window the turn comes back with no answer, no artifacts and `terminal_status: null`. This is normal mid-run and is exactly when to keep polling. It is also why an unreadable turn is never reported as an error — a mistyped `--task-id` and a turn between rewrites are indistinguishable, so `get` returns the same empty shape for both and echoes the id you asked for. If a wait runs past its budget while `terminal_status` is still null, that is not evidence the run failed — list the session before concluding anything.
 
@@ -120,15 +132,15 @@ Concretely, after submitting: do not call `sleep`, do not write a shell loop, an
 
 Pick how to collect in this order:
 
-1. Your host offers a background mechanism you are allowed to use → hand collection to it and carry on.
+1. Your host offers a background mechanism you are allowed to use → hand it one `get --wait --timeout-ms 1800000` command (30 minutes, the giving-up budget below), which returns when the turn settles, and carry on.
 2. Collecting would need a host subagent, and spawning one needs authorization you do not have → do not spawn it.
 3. Otherwise → report the `session_id` and `task_id`, **end the turn**, and read again when you are next invoked.
 
-Wait in-band only when the user asked to watch the run, or when your host can genuinely move the wait off the turn.
+Wait in-band only when the user asked to watch the run, or when your host can genuinely move the wait off the turn. To wait in-band, run `get --wait` rather than a `sleep` loop: each call returns within its budget. An `IDA_WAIT_TIMEOUT` whose hint says the turn may still be running means it has not settled yet, so run the command from its hint again; after a timeout or two, check the task id with the `deep-research list` command the hint also prints. For the other two cases, follow their hint instead of waiting again.
 
 **A run can stop and ask for access you cannot grant from here.** The remote agent reaches data platforms under its own connector identity, and a successful `bytedcli auth login` says nothing about whether that identity is bound. When a run answers with an authentication or binding URL, return the URL as given, keep the `session_id`, and continue in that same session once the user confirms — the pending work and its context live there. Do not start a new session, and do not route around it with other tools. Which connectors a given agent needs is that agent's own documentation to state.
 
-On that basis the budget is ~30s between reads and ~30 minutes before giving up — a budget spread over turns, not the parameters of one loop. Running the budget out leaves two readings that the output cannot separate, a turn still being written and an id that was mistyped, so list the session rather than reporting either one.
+On that basis, when you collect across turns (option 3), the budget is ~30s between reads and ~30 minutes before giving up — a budget spread over turns, not the parameters of one loop. Within a single `get --wait` call, the command paces its own reads. Running the budget out leaves two readings that the output cannot separate, a turn still being written and an id that was mistyped, so list the session rather than reporting either one.
 
 You do not have to wait out the budget to catch a typo. After a few empty reads, run `ida deep-research list --session-id <session_id>` and check that the id you are polling appears among the turns. That is a lookup, not a stopping condition: finding the turn means keep waiting, and not finding it means the id is wrong — or that iDA has not persisted the turn yet.
 
@@ -142,7 +154,7 @@ Two more things before parsing:
 
 - **`get` returns the answer, the turn's `terminal_status` and an artifact summary; `--full` adds the execution trace and the artifact contents.** The trace and the bodies run to six figures of tokens on a real investigation and the answer is a low single-digit percentage of it, so they are opt-in. `step_count` is reported either way, and is `null` when the turn could not be read at all.
 - **`--no-wait` reports only `session_id`, `task_id` and `created_session`.** It omits `answer`, `artifacts`, `steps` and `terminal_status` — iDA has not produced them yet, and emitting empty ones would read as a finished, empty result. Only `get` returns those fields.
-- **`--timeout-ms` does not apply to `--no-wait`**, which never waits.
+- **`create --timeout-ms` does not apply to `--no-wait`**, which never waits. On `get`, `--timeout-ms` is the budget of `--wait` and is rejected without it.
 
 ### Collecting the files a run produced
 
@@ -168,8 +180,9 @@ Useful options:
 - `--agent-id <id>`: use a specific Deep Research-capable agent when creating a session.
 - `--model <name>`: model value from `ida model list`.
 - `--no-search`, `--no-web-search`, `--lark-qa`, `--no-knowledge-qa`: control search sources.
-- `--no-wait`: return as soon as iDA accepts the task, then collect with `ida deep-research get`.
-- `--timeout-ms <milliseconds>`: increase when the answer takes longer than the default wait window.
+- `--content-file <path>`: read the question from a regular UTF-8 file (at most 256 KiB) instead of `--content`.
+- `--no-wait`: return as soon as iDA accepts the task, then collect with `ida deep-research get --wait`.
+- `--timeout-ms <milliseconds>`: how long `create` waits for the stream. When it runs out, collect with the `get --wait` command the error hint prints; running `create` again would submit the question a second time.
 
 ## Session and Message Reads
 
@@ -183,6 +196,8 @@ bytedcli ida session update --session-id <session_id> --name "Demo research"
 ```
 
 `session get` is the Deep Research session detail path. `session info`, `session raw list`, and `message list` operate on raw iDA sessions.
+
+These reads only return your own sessions; reading another user's session fails with HTTP 401 `session owner mismatch`. When an iDA agent reports to a TEA LLM workbench space on SG, `bytedcli tea operations-agent session list` / `get` (SG only) reads that space's sessions, other users' included, with each round's model, tool and MCP steps. It needs TEA project permission, and takes the TEA project and space IDs from the workbench link, `/tea-next/project/<project-id>/llm-workbench/operations-agent/<page>/<space-id>`; the iDA agent ID does not map to them.
 
 ## iDA Agent, Skill, and MCP Discovery
 

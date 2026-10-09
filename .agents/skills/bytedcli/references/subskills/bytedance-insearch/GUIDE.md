@@ -1,6 +1,6 @@
 ---
 name: bytedance-insearch
-description: "搜索字节跳动内部知识、文档、服务和工具；也可通过 insearch get 对允许的内部 HTTP(S) URL 执行只读 GET。当用户提问涉及字节内部平台（如 TCC、TCE、Kitex、Hertz、ByteRPC、Neptune、Aeolus、BMQ、Hive、ES 等）、内部文档、内部流程，或给出需要登录态访问的内部 URL/API 时使用。Search ByteDance internal knowledge, docs, services and tools. Use when questions involve internal platforms, frameworks, documentation, deployment, oncall, ByteDance-specific topics, or authenticated internal URL reads."
+description: "搜索字节内部知识、文档、流程、服务和工具；insearch get 对允许的内部 HTTP(S) URL/API 做带登录态的只读 GET。用于内部平台/框架（TCC、TCE、Kitex、Hertz、ByteRPC、Neptune、Aeolus、BMQ、Hive、ES）、部署和值班知识问题。Search ByteDance internal knowledge/docs/services/tools or authenticated internal URLs."
 ---
 
 # bytedcli insearch

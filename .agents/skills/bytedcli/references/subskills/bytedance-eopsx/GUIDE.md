@@ -99,14 +99,19 @@ bytedcli --json eopsx guard source-tree get --system-id <id> --env-id <id> --ter
 bytedcli --json eopsx guard env list --system-id <id> --page 1 --page-size 20
 bytedcli --json eopsx guard role list --system-id <id> --env-id <id>
 bytedcli --json eopsx guard perm list --system-id <id> --env-id <id>
+bytedcli --json eopsx guard source create --system-id <id> --env-id <id> --source-type cli --cli-name "Sample CLI resource" --cli-menu-id <menu_id> --cli-account-type all --cli-keys "bytedcli eopsx guard source list"
+bytedcli --json eopsx guard source create --system-id <id> --env-id <id> --source-type skill --skill-name "Sample Skill resource" --skill-menu-id <menu_id> --skill-account-type all --skill-keys "api-to-cli"
 ```
+
+`guard env change-table-get --publish-id 0` 表示查询当前环境未发布变更；`guard env publish-info-get` 和 `guard env publish-change-list-get` 的 `--publish-id` 必须为大于 0 的发布 ID。
 
 ## 写操作安全规则（Agent Guidance）
 
-下列 `bcp`（9 个写命令）和 `risk`（10 个写命令）含写操作；`dev` 的初始化、参考下载、草稿保存、测试、追问及停止同样先预览确认，具体流程见 [DevKit 指南](references/rca-dev.md)。**所有写命令默认 dry-run：只打印将提交的 payload 预览，必须显式加 `--yes` 才真正提交。**
+下列 `bcp`（9 个写命令）和 `risk`（10 个写命令）含写操作；`dev` 的初始化、参考下载、草稿保存、测试、追问及停止同样先预览确认，具体流程见 [DevKit 指南](references/rca-dev.md)。**所有写命令默认 dry-run：只打印将提交的 payload 预览，必须显式加 `--yes` 才真正提交。** `guard` 的 source/perm/role/env CRUD 命令沿用后台接口语义，会直接提交，不支持 `--yes`。
 
 - 首次执行不要加 `--yes`，先展示 payload 给用户，确认无误后再加 `--yes` 提交。
 - 写操作应由用户明确要求触发；不要把"查询/排查"自动升级为写操作。
+- 执行 `guard perm source-relation-update` 前必须确认完整关系集合；该命令会清除所有未传入的资源类型和资源 ID。
 
 ```bash
 # 先 dry-run 预览

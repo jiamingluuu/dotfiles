@@ -130,3 +130,107 @@ bytedcli --json cdn file download --file demo-icon.png --dir assets --dest ./dem
 `permission list` 列出某团队空间已授权的用户。`--team-space` 必填，不支持全量列举。命令要求本机已登录（无登录态报 `CDN_TEAM_SPACE_AUTH_REQUIRED`），`--email` 只能与登录用户一致、不能用来切换身份；发起方必须在目标空间确有授权，否则报 `CDN_TEAM_SPACE_FORBIDDEN` 且不返回任何名单。`--with-permission-type` 会为每个成员各发一次查询补全权限级别，成员多时明显更慢，且只有全部成员都探测成功才会 `permission_type_resolved: true`，失败数在 `permission_type_failed`。`--timeout-ms` 覆盖全量授权表拉取的超时（默认 60000）。JSON 输出为 `{team_space, requester, total, user_count, permission_type_resolved, permission_type_failed, members[]}`；`total` 是授权记录数（一条记录 = 一个 user+region），`user_count` 才是去重人数。
 
 上游授权表免鉴权且单次返回全公司数据，`permission list` 的三道门（`--team-space` 必填、身份只认登录态、发起方须在名单内）是客户端输出门，不是服务端授权。
+
+## cdn metric query
+
+查询指定域名的指标时间序列。`cn` 为只读 GET，`i18n-tt` / `us-ttp` 为只读 POST；两条接口使用不同原生指标名，不做隐式语义映射。参数如下：
+
+| 参数 | 含义 |
+| --- | --- |
+| 全局 `--site` | `cn`（默认）、`i18n-tt`、`us-ttp`；其它站点拒绝，不回退 `cn` |
+| `--domain` | 必填，域名；可重复或逗号分隔，不接受 URL、路径或端口 |
+| `--metric` | 必填，后端指标名；可重复或逗号分隔 |
+| `--endpoint` | `edge` / `origin`；默认 `edge`，`i18n-tt` / `us-ttp` 可重复或逗号分隔，`cn` 只允许一个 |
+| `--interval` | `1min|5min|1hour|1day`，默认 `5min` |
+| `--group-by` | 仅 `i18n-tt` / `us-ttp`：`domain|vendor|cdn_type`，可重复或逗号分隔；默认聚合 |
+| `--vendor` | 仅 `i18n-tt` / `us-ttp`：后端厂商名称，可重复或逗号分隔 |
+| `--start` | 起始时间，默认结束时间前一小时 |
+| `--end` | 结束时间，默认当前时间 |
+
+时间接受 Unix 秒/毫秒、ISO 8601 或相对时间（如 `'1h ago'`）；发送给后端及 JSON 返回的时间戳统一为 Unix 秒，开始必须早于结束。建议 ISO 8601 显式带时区。
+
+`--start` 和 `--end` 都支持相对时间；分钟写 `'20m ago'`，小时写 `'1h ago'`，不要写 `'20min ago'`。例如查询结束于 20 分钟前的一小时：`--end '20m ago'` 并省略 `--start`（默认相对 end 向前一小时）。
+
+```bash
+bytedcli --site cn --json cdn metric query --domain static.example.com --metric status
+bytedcli --site i18n-tt --json cdn metric query --domain static.example.com --metric status_bucket_4xx,status_bucket_5xx --interval 5min --start '1h ago'
+bytedcli --site us-ttp --json cdn metric query --domain static.example.com --metric bandwidth --endpoint origin --start 1700000000 --end 1700003600
+bytedcli --site i18n-tt --json cdn metric query --domain static.example.com,assets.example.com --metric request,traffic_hit_ratio --group-by domain,vendor --interval 1hour
+```
+
+`i18n-tt` / `us-ttp` 的 `request` 是请求总数，单位 `count`；`traffic_hit_ratio` / `request_hit_ratio` / `edge_traffic_hit_ratio` / `edge_request_hit_ratio` 是 0~1 ratio，文本与 JSON 都保留该原始值，不标为百分数。`status_bucket_summary` 返回各状态码段总数，`status_bucket_4xx` / `status_bucket_5xx` 返回对应段内各具体状态码。
+
+已验证 `bandwidth` 单位为 `bps`、`traffic` 为 `bytes`、`qps` 返回单位为 `count`（指标语义仍为每秒请求速率）。`status_bucket_5xx` 返回多个具体 `status_code_*` 指标，单位为 `count`。CLI 仅接受下表列出的 16 个 `i18n-tt` / `us-ttp` 指标，不编造映射或推导错误率。
+
+JSON envelope 的 `data`：
+
+```json
+{
+  "query": {
+    "domains": ["static.example.com"],
+    "metrics": ["bandwidth"],
+    "endpoints": ["edge"],
+    "interval": "5min",
+    "start": 1700000000,
+    "end": 1700003600
+  },
+  "results": [{
+    "metric": "bandwidth",
+    "unit": "bps",
+    "series": [{
+      "tags": {},
+      "data": [{"timestamp": 1700000100, "value": 1024}]
+    }]
+  }],
+  "metadata": {"dataSource": "sample-source", "executionMs": 12},
+  "traceId": "sample-trace"
+}
+```
+
+`tags` 保留后端各条序列的分组标签，不臆造域名/节点分组；`metadata` 与 `traceId` 取决于响应。文本输出逐序列列出时间、值、单位，不截断数据点。零值保留，缺失值 `null` 显示为 `-`，不补点。空数组表示无返回数据，不能解释为全零。后端明确失败或响应结构不符均报错，不返回成功空数组。
+
+指标查询使用站点 JWT：`cn` 复用 `cdn domain` 的 ByteCloud console proxy host/path 和代理固定头，使用 GET `describe-cdn-data` / `describe-cdn-origin-data`，附加对应 `x-dm-schema-name`；`i18n-tt` 和 `us-ttp` 复用 `cdn domain` 的 TI SG / TI TX host/path，均 POST 调用 `stat-query-metrics`，`us-ttp` 保留 action schema header。host 在 `site.ts` 维护，HTTP/header 在 client，请求映射在 API，响应规范化在 parser；ife 上传服务独立。
+
+### cn 数据与权限
+
+`cn` 请求参数为 `start_time`、`end_time`、`domain`（逗号列表）、`metric`（逗号列表）、`interval`。CLI 的 `1hour` / `1day` 映射为 `hour` / `day`。原生指标：`bandwidth`、`flux`、`pv`、`status`、`hitrate`、`pvhitrate`；origin 仅支持前四项。具体厂商的可用粒度/指标由 `describe-cdn-vendor-stat-ability` 决定，并非所有厂商均支持全部组合。
+
+`cn` `response.resources[].metrics[].values[]` 规范化为 `results[].series[].data[]`。保留原生指标名；资源名在 `tags.resource`（域名或 `total`），区域/运营商标签分别保留。上游无单位字段，输出 `unit=upstream`；不把命中率自动当作 0~1 ratio，不从 `pv` 擅自推导 QPS。
+
+JSON 额外返回 `isRandomized`、`invalidDomains` 和 `metadata.dataSource`。**`isRandomized=true` 表示随机化数据，不能作为真实指标使用**，文本模式有明确警告。不要将 total 和分域名累加，也不要将 `status_4xx` 汇总与 `status_404` 等明细重复累加。
+
+无域名权限时，`bandwidth/flux/pv` 可能返回上游权限错误（如 `7000000` / `PermissionDenied`）；CLI 使用统一 `CDN_METRIC_API_ERROR`，保留上游 message、code、error 和 traceId；状态码和命中率可能成功但返回随机化数据。先在 `cn` 控制台按“有权限”筛选目标域名；列表为空时，需由域名管理员授予权限，再确认 `isRandomized=false`。一次请求混入需要权限的指标可能导致整批失败；CLI 不删除失败指标后伪装成完整查询成功。
+
+### 指标验证范围
+
+以下是 CLI 支持的完整 `i18n-tt` / `us-ttp` metric 集合，共 16 项。已使用 `i18n-tt` 的构建产物逐项独立查询（edge、5min），每项均返回时间序列；`us-ttp` 也已逐项验证。该集合不代表后端完整枚举，也不保证任意域名、厂商、时间范围或 origin 均有数据。未列出的名字（包括独立 0xx、1xx、3xx bucket）在发请求前明确拒绝；summary/full_breakdown 响应中的对应状态码段仍原样保留。
+
+| metric | `i18n-tt` | `us-ttp` | 含义/响应 |
+| --- | --- | --- | --- |
+| `bandwidth` | 返回序列 | 返回序列 | 带宽，bps |
+| `traffic` | 返回序列 | 返回序列 | 流量，bytes |
+| `request` | 返回序列 | 返回序列 | 请求数，count |
+| `qps` | 返回序列 | 返回序列 | 请求速率，后端 unit 为 count |
+| `traffic_hit_ratio` | 返回序列 | 返回序列 | 流量命中率，ratio |
+| `request_hit_ratio` | 返回序列 | 返回序列 | 请求命中率，ratio |
+| `edge_traffic_hit_ratio` | 返回序列 | 返回序列 | 边缘流量命中率，ratio |
+| `edge_request_hit_ratio` | 返回序列 | 返回序列 | 边缘请求命中率，ratio |
+| `hit_traffic` | 返回序列 | 返回序列 | 命中流量 |
+| `hit_request` | 返回序列 | 返回序列 | 命中请求数 |
+| `status_bucket_summary` | 返回序列 | 返回序列 | 各状态码段汇总 |
+| `status_full_breakdown` | 返回序列 | 返回序列 | 状态码段和具体码 |
+| `status_bucket_2xx` | 返回序列 | 返回序列 | 2xx 内具体码 |
+| `status_bucket_4xx` | 返回序列 | 返回序列 | 包含 404 等具体码 |
+| `status_bucket_5xx` | 返回序列 | 返回序列 | 5xx 内具体码 |
+| `status_code_404` | 返回序列 | 返回序列 | 单个状态码；未逐个测试所有 HTTP code |
+
+| `cn` metric | 当前账号实测 | 验证边界 |
+| --- | --- | --- |
+| `status` | 返回序列，`isRandomized=true` | edge/origin 均验证；有 4xx 汇总及具体码，非真实数据验收 |
+| `hitrate` | 返回序列，`isRandomized=true` | edge，非真实数据验收 |
+| `pvhitrate` | 返回序列，`isRandomized=true` | edge，非真实数据验收 |
+| `bandwidth` | PermissionDenied | 需要有权限的域名；未验证真实数据 |
+| `flux` | PermissionDenied | 同上 |
+| `pv` | PermissionDenied | 同上 |
+
+依据为用户请求、控制台 statistical-analysis 源码、CDN 统计分析用户指南和在线厂商统计能力接口。`cn` 的真实数据验收仍需权限，离线 fixtures 只证明协议解析，不替代线上验收。

@@ -71,6 +71,10 @@ bytedcli kross vm template list --workspace demo-workspace
 # 再看当前 workspace 下已有 workload
 bytedcli kross workload list --workspace demo-workspace
 
+# 持续观察一个 workload 的状态变化
+bytedcli kross workload follow --workspace demo-workspace --name demo-job
+bytedcli --json kross workload follow --workspace demo-workspace --workload-id 72
+
 # quick create：创建 JOB 类型 workload
 bytedcli kross workload create \
   --workspace demo-workspace \
@@ -119,7 +123,8 @@ bytedcli kross vm create \
   --name demo-vm \
   --image-template-id ubuntu-2204 \
   --vcpu 2 \
-  --memory-mb 4096
+  --memory-mb 4096 \
+  --timeout-seconds 300
 ```
 
 管理电源状态与本地访问：
@@ -138,6 +143,9 @@ bytedcli kross vm access start \
 
 SSH 默认监听 `127.0.0.1:2222`，RDP 默认监听 `127.0.0.1:13389`。监听地址仅允许
 `127.0.0.1` 或 `::1`；每个本地 TCP 连接都会创建独立的短期 Kross access session。
+
+`--timeout-seconds` 可选，用于设置 VM 的存活时间；超时后 Kross 自动回收 VM。
+该参数只要求为正整数，不设置固定上限。VM 不支持 `autoDeleteOnCompletion`。
 
 `vm create` 和 `vm execute` 是写操作。执行前先向用户展示 workspace、VM 名称或 ID、
 动作及 vCPU、内存、镜像模板等关键参数，并等待用户明确确认。
@@ -263,6 +271,9 @@ bytedcli --json kross workload exec --workspace demo-workspace --name demo-workl
 - `workspace var list` 会返回变量的 `InjectionMode`。普通变量看 `EnvName`，secret 变量看 `UnixPath` / `WindowsPath`
 - `workspace var list --type SECRET` 只看 secret 变量；secret 值只会以 `MaskedValue` 脱敏展示，不返回明文
 - `workload list` 会自动翻完目标 workspace 下的 workload 分页
+- `workload follow` 会输出 `SNAPSHOT`、`MODIFIED` 和 `DELETED` 事件；`--json` 为每行一个事件的 JSONL，不输出最终 envelope
+- `workload follow` 是无界流，只能在直接 CLI 会话中运行，不支持 MCP 或 captured execution
+- `workload follow` 在服务端关闭流后结束，不会自动重连
 - CLI 会按 workspace 名称自动解析 ID，但要求名称精确；模糊名称会报错并返回候选项
 - 其他 `--workspace <name>` 命令在按名称解析 workspace 时，也只会在当前用户可访问的 workspace 范围内匹配
 - `template list` 会由 Kross 服务端根据 workspace 可见性和生效中的 cluster binding 返回可用模板

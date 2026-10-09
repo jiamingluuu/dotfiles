@@ -1,6 +1,6 @@
 ---
 name: bytedance-cronjob
-description: "Operate ByteDance cronjob via bytedcli: list/get jobs, list records, list/get deploy & upgrade tickets, list US-TTP SRE candidates and choose NoC or a named SRE, create clusters, deploy jobs, rerun jobs, debug jobs, kill running task instances, find logs, view cluster resource/Argos info, and enable/disable a cronjob's scheduling (suspend/resume) or delete a cluster. Use when tasks mention cronjob, 定时任务, 任务调度, 发布, 升级版本, 补数, 重跑, 调试, 杀任务, kill, 停止实例, 工单, 发布单, 查日志, 集群, 新建集群, 创建集群, 开启定时任务, 关闭定时任务, 启用任务, 停用任务, 暂停调度, 恢复调度, 删除集群. 注意：开启/关闭（启用/停用）定时任务调度走 `cronjob cluster resume` / `cronjob cluster suspend`（开关在 cluster 的 suspend 字段上，cronjob 没有 job 级一键开关）。重要：当涉及查找日志时，必须优先确认任务所在的控制面 (Site) 环境，请务必参考 references/workflow-find-logs.md 流程。"
+description: "Use bytedcli cronjob/定时任务 for jobs/records, deploy/upgrade tickets, US-TTP SRE candidates (NoC/named SRE), cluster creation/deletion, deployment, backfill/rerun/debug/kill instances (补数/重跑/调试/杀任务), logs/查日志 and cluster resource/Argos info. Scheduling 开启/关闭/启用/停用/暂停/恢复 uses cronjob cluster resume/suspend, not a job-level switch. For logs, confirm control-plane Site first and follow references/workflow-find-logs.md."
 ---
 
 # Cronjob (bytedcli)

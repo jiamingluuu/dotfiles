@@ -1,6 +1,6 @@
 ---
 name: bytedance-cdn
-description: "Operate ByteCloud CDN via bytedcli: list CDN domains and get domain detail configuration (origin, HTTPS, cache, compression); upload files (single file, archive extraction, or recursive local directories), download, delete, refresh and list files on the CDN upload service; apply for team-space file permissions and list the users already granted on a team space. Use when tasks mention CDN domain lookup, CDN configuration, CDN CNAME, CDN certificate, CDN origin, fusion-cdn, CDN file upload, CDN upload, CDN download, downloading files from CDN, uploading static assets or a whole directory to CDN, CDN team-space permission, or who has access to a CDN team space."
+description: "Operate ByteCloud CDN via bytedcli: query domain time-series metrics (bandwidth, traffic, QPS and status codes); list CDN domains and get domain detail configuration (origin, HTTPS, cache, compression); upload files (single file, archive extraction, or recursive local directories), download, delete, refresh and list files on the CDN upload service; apply for team-space file permissions and list the users already granted on a team space. Use when tasks mention CDN metrics, CDN bandwidth, CDN traffic, CDN status codes, CDN domain lookup, CDN configuration, CDN CNAME, CDN certificate, CDN origin, fusion-cdn, CDN file upload, CDN upload, CDN download, downloading files from CDN, uploading static assets or a whole directory to CDN, CDN team-space permission, or who has access to a CDN team space."
 ---
 
 # bytedcli CDN
@@ -22,6 +22,7 @@ NPM_CONFIG_REGISTRY=http://bnpm.byted.org npx -y @bytedance-dev/bytedcli@latest 
 
 ## When to use
 
+- 查询 CDN 域名指标时间序列（带宽、流量、QPS、状态码；cn / i18n-tt / us-ttp）
 - 查询 CDN 域名列表（按域名关键词搜索）
 - 查看 CDN 域名的详细配置（源站、HTTPS、缓存、压缩等）
 - 确认域名是否被 CDN 系统托管（对比 CNAME 与实际 DNS 解析）
@@ -235,3 +236,32 @@ bytedcli cdn file permission list --team-space <name> [--email <addr>] [--with-p
 - `Not authenticated`：需要登录对应站点，提示中包含完整登录命令
 - `Domain "xxx" not found`：该域名在指定站点的 CDN 系统中不存在，尝试切换站点
 - `cdn file` 请求超时/不可达：办公网确认 VPN 并使用默认 profile；生产网或服务端设置 `BYTEDCLI_NETWORK_PROFILE=prod`
+
+### cdn metric query
+
+按域名查询时间序列，支持 `--site cn`、`--site i18n-tt`、`--site us-ttp`，复用对应站点个人 ByteCloud JWT。`--domain`、`--metric` 必填，可重复或逗号分隔；默认最近一小时、`--endpoint edge`、`--interval 5min`。粒度支持 `1min|5min|1hour|1day`，`cn` 的小时/天自动映射为 `hour` / `day`。时间接受 Unix 秒/毫秒、ISO 8601 或 `'1h ago'`。
+
+`--start` 和 `--end` 都支持相对时间；分钟写 `'20m ago'`，小时写 `'1h ago'`，不要写 `'20min ago'`。例如查询结束于 20 分钟前的一小时：`--end '20m ago'` 并省略 `--start`（默认相对 end 向前一小时）。
+
+- `cn` 使用 GET `describe-cdn-data`；`--endpoint origin` 使用 `describe-cdn-origin-data`。原生指标为 `bandwidth`、`flux`、`pv`、`status`、`hitrate`、`pvhitrate`；回源不支持两个命中率。`status` 包含 4xx/5xx 汇总和具体状态码。`cn` 每次只允许一个 endpoint，不支持 `--group-by` / `--vendor`。
+- `i18n-tt` / `us-ttp` 使用 POST `stat-query-metrics`。支持多 endpoint、`--group-by domain|vendor|cdn_type`、`--vendor`；指标包括 `bandwidth`、`traffic`、`request`、`qps`、四种 `*_hit_ratio`、`hit_traffic`、`hit_request`、`status_bucket_summary`、`status_full_breakdown`、`status_bucket_4xx` / `status_bucket_5xx`、`status_code_404`。完整支持集合见参考中的逐项验证表；CLI 仅接受已列出的 16 项 `i18n-tt` / `us-ttp` 指标，未列出或明确排除的名字会在请求前报错。
+
+```bash
+# cn 状态码（包含 4xx / 5xx）；先检查返回的 isRandomized
+bytedcli --site cn --json cdn metric query --domain static.example.com --metric status
+# cn 带宽、流量、请求数需要目标域名权限
+bytedcli --site cn --json cdn metric query --domain static.example.com --metric bandwidth,flux,pv
+# i18n-tt 4xx 明细，返回具体 status_code_* 序列
+bytedcli --site i18n-tt --json cdn metric query --domain static.example.com --metric status_bucket_4xx --start '1h ago'
+# us-ttp 回源指标
+bytedcli --site us-ttp --json cdn metric query --domain static.example.com --metric bandwidth,traffic,qps --endpoint origin
+```
+
+Agent Guidance：
+- `cn` **必须检查 `isRandomized`**：`true` 是上游随机化数据，禁止解释为真实流量、错误量或 SLA，也不能当作真实域名成功验收。权限不足时 `bandwidth/flux/pv` 返回上游权限错误（如 `7000000` / `PermissionDenied`），CLI 在 `CDN_METRIC_API_ERROR` 中保留上游错误信息；`status/hitrate/pvhitrate` 可能成功返回随机化数据。需由域名管理员授予权限后，以 `isRandomized=false` 验证真实值，不要换身份或域名绕过权限。
+- `cn` 保留原生 `status_4xx`、`status_404` 等名字、数值及 `tags.resource`（包括 `total`），不要将 total 与分域名序列重复累加。`cn` 响应不带单位，`unit=upstream` 表示未声明单位，不套用 `i18n-tt` / `us-ttp` 的单位或百分比规则。
+- `i18n-tt` / `us-ttp` 的 `status_bucket_summary` 返回状态码段总数；`status_bucket_4xx/5xx` 展开为具体码；`status_full_breakdown` 同时含汇总和明细，不能全部相加。独立的 0xx、1xx、3xx bucket 不开放；查看状态码段汇总使用 `status_bucket_summary`。其它已支持指标在某个时间窗返回空，也不能解释为零。
+- `i18n-tt` / `us-ttp` 的 ratio 指标保留 0~1 原值，`qps` 后端单位可能为 `count`，不要改解释为请求总数。响应额外返回依赖指标时保留，不静默丢弃。
+- 外层失败、内层 `Base.Code` 失败或响应结构漂移均报错；不支持的站点不得回退 `cn`。保留 trace 信息排查权限或网关错误。
+
+完整输出说明见 [CDN 命令参考](references/cdn.md#cdn-metric-query)。

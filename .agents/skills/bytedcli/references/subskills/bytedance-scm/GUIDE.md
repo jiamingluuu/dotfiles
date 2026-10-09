@@ -57,6 +57,9 @@ bytedcli scm repo artifact get --version-id 9876                         # 查�
 # US-TTP 手动上传已有版本的静态资源，默认预览；不是上传本地文件
 bytedcli --site us-ttp scm repo artifact upload-static --repo-id 123 --version 1.0.0.1
 bytedcli --site us-ttp scm repo artifact upload-static --repo-id 123 --version 1.0.0.1 --yes
+bytedcli scm repo version get "example-org/example-repo" --version 1.0.0.1
+bytedcli scm repo version download "example-org/example-repo" --version 1.0.0.1 --output ./example.tar.gz
+bytedcli scm repo version download "example-org/example-repo" --latest --output ./latest.tar.gz
 # 列两个构建版本之间的精确 commit 范围（比 git log --since 更准确：用 build manifest pin 的 SHA，不受 force-push / merge time 漂移影响）
 bytedcli scm repo version compare --repo-id 379649 --base 2.0.4.9494 --target 2.0.4.9656
 bytedcli scm repo version compare "example-org/example-repo" --base 1.0.0.1686 --target 1.0.0.1720 --first-parent
@@ -145,6 +148,8 @@ bytedcli scm repo build "example-org/example-repo" --branch master --type test -
 - `scm repo artifact get` 查询指定 SCM 版本的远端 `artifact_info` 元数据，不下载文件
 - `scm repo artifact upload-static` 对应 US-TTP 的手动“上传静态资源”功能，必须显式选择 `--site us-ttp`（或既有 `--scm-site` 覆盖）。只接受 `prepare_upload` / `upload_failed` 版本，先读取并校验版本，再预览完整请求；`--yes` 才提交。读取走 SCM 站点，上传走 Goofy US-TTP 网关，复用 ByteCloud JWT 鉴权。
 - 上传结果 `submitted: true` 仅表示请求已受理，不代表 CDN 上传完成；使用输出中的 `next_command` 查询状态。默认不轮询、不重试写请求；网络失败后先查版本状态，避免重复提交。没有本地文件、CDN 业务线绑定或重新构建行为。
+- `scm repo version get` 查询单个 SCM 版本详情；`version list` 仍用于版本列表和过滤
+- `scm repo version download` 下载 SCM 归档，固定版本用 `--version`，最新版本用 `--latest`；默认保存到当前目录，已存在文件需 `--force` 覆盖。TTP/EU-TTP 下载域名可用 `--archive-site byted-cn|ttp|ttp-office|eu-ttp` 指定
 - 构建后的 JSON 结果里有 `pub_base` 字段，branch 模式应为 `branch_base`。若本该走海外却是 `commit_base`，先确认用的是 `--branch` 而非 `--commit`
 
 ## References

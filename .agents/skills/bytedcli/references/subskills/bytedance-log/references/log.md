@@ -40,20 +40,20 @@ bytedcli log search-psm-log --psm "psm.name" --start "2026-02-02T08:00:00" --end
 # PSM 日志搜索（BOE 的 boei18n 分区 US-BOE）
 bytedcli --site boe --json log search-psm-log --psm "demo.psm" --vregion "US-BOE" --start "2026-04-16T21:08:48-07:00" --end "2026-04-16T21:33:48-07:00" --keyword "demo-keyword" --output console
 
-# LogID 查询（提供 PSM 时默认自动使用 rolling __logid PSM search）
+# LogID 查询（默认 logid_prune 模式，PSM 作为过滤条件）
 bytedcli log get-logid-log "20260202085428C91A145A63CB5F0B9D80" --psm "psm.name" --vregion "China-North"
 
 # 保留 object/array 形态的 JSON string（仅默认 logid_prune 模式）
 bytedcli log get-logid-log "20260202085428C91A145A63CB5F0B9D80" --vregion "China-North" --preserve-json-string
 
-# LogID 查询（禁用 rolling，改用 trace API 的 psm_list 过滤，适合 rolling 被限流时）
-bytedcli log get-logid-log "20260202085428C91A145A63CB5F0B9D80" --psm "psm.name" --no-rolling --vregion "China-North"
+# 多区域 LogID 查询（默认 logid_prune 模式，可选 PSM 过滤）
+bytedcli --site cn log get-logid-log --logid sample-log-id --psm example.service --vregion 'China-North|China-North6' --output console
 
-# LogID 查询 + 日志级别过滤（rolling 模式，--level 可重复或逗号分隔；快捷方式 --error-warn / --error-only）
+# LogID 查询 + 日志级别过滤（默认模式下客户端过滤，--level 可重复或逗号分隔；快捷方式 --error-warn / --error-only）
 bytedcli log get-logid-log "20260202085428C91A145A63CB5F0B9D80" --psm "psm.name" --level Error,Warn --output console
 
 # LogID 查询（rolling 文本输出按字段导出，适合只保留 logid/podname/level 等关键字段）
-bytedcli log get-logid-log "20260202085428C91A145A63CB5F0B9D80" --psm "psm.name" --fields "logid,podname,level" --output console
+bytedcli log get-logid-log "20260202085428C91A145A63CB5F0B9D80" --psm "psm.name" --rolling --fields "logid,podname,level" --output console
 
 # 接口总体性能分析（默认把完整结果落到本地文件）
 bytedcli log analysis performance --psm "psm.name" --method "QueryFoo" --start "2026-02-02T08:00:00+08:00" --end "2026-02-02T09:00:00+08:00"
@@ -122,10 +122,12 @@ bytedcli log get-log-cluster "psm.name" --start "2026-02-02T08:00:00" --kv-filte
 
 说明：
 
+- **多区域 LogID 查询**：`get-logid-log` 默认 `logid_prune` 模式支持 `--vregion 'China-North|China-North6'`，可同时带 `--psm example.service` 过滤。整个区域值必须加引号，避免 `|` 被 shell 当成管道；不要用逗号或重复 `--vregion`，重复选项只保留最后一个值。
+- 上述多区域写法依赖默认 SDK 路径（未通过 `ARGOS_SDK=0` 等配置关闭），不适用于 `--rolling` / `--dump` 或旧 HTTP 路径。`search-psm-log`、`search-log-matchers`、`get-log-cluster` 等命令没有相同的多区域约定，需要多区域结果时按区域分别执行。区域应属于所选 `--site` 的控制面；跨站点查询分别指定对应 `--site` 和区域。
 - SDK 默认 `--index-mode legacy` 以兼容已有调用；需要按全部 PSM 的索引配置自动选择索引、TERM 和分页参数时显式传 `--index-mode auto`。`auto/on/off` 会忽略旧 `--enable-index`，不要同时传；HTTP fallback 保留原有 7d/6h、默认 CN IDC 与显式 `--enable-index` 行为。
 - `auto` 仅在首轮索引请求返回索引专属错误时安全降级；`on`、显式 `--term`、鉴权/权限/网络错误会原样返回。
 - 显式模式首轮沿用 `--limit`，后续索引页请求 1000 条、非索引页请求 200 条；后端按每页传入的 limit 执行。响应缺少最终 `enable_index` 时，应从首轮重试且不要复用 cursor。
-- `search-psm-log`、`get-logid-log` rolling 模式（`--psm` 且未加 `--no-rolling`，或显式 `--rolling`）、`search-prod-instance-log`、`get-lane-instance-log` 的时间窗口超过 6h 时，会自动拆成多个不超过 6h 的时间片并串行请求。
+- `search-psm-log`、`get-logid-log` rolling 模式（显式 `--rolling` / `--dump`，需要 PSM）、`search-prod-instance-log`、`get-lane-instance-log` 的时间窗口超过 6h 时，会自动拆成多个不超过 6h 的时间片并串行请求。
 - 当 `search-psm-log`、`search-prod-instance-log`、`get-lane-instance-log` 的时间窗口超过 6h 且没有显式收窄条件（例如 `--keyword`、`--exclude`、`--kv-filter`、`--level`、`--idc`）时，CLI 会直接拒绝，避免长时间范围空查询。
 - `search-psm-log` 可用 `--exclude-operator OR` 让多个 `--exclude` 任意命中即过滤；默认 `AND` 保持历史行为。
 - `--site i18n-bd --vregion US-EastBD` 会路由到 `logservice-us-eastbd.byted.org`，用于查询 i18n-bd US-EastBD 区域日志。

@@ -47,7 +47,7 @@ bytedcli hive search [options]
 
 - `--query <query>` - Search query (required)
 - `-t, --type <type>` - DataLeap / Coral asset typeName. See [Asset Types](#asset-types) for the full list. (default: "HiveDB")
-- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: "cn")
+- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: follows `--site`, see [Default region](#default-region))
 - `-p, --page <page>` - Page number (default: 1)
 - `--size <size>` - Page size (default: 20)
 
@@ -86,7 +86,7 @@ bytedcli hive detail [database] [table] [options]
 
 **Options:**
 
-- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: "cn")
+- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: follows `--site`, see [Default region](#default-region))
 - `-t, --type <type>` - Detail asset type (HiveDB, HiveTable, ClickhouseDB, ClickhouseTable, DorisTable)
 - `--namespace <name>` - Doris namespace / cluster for exact DorisTable lookup
 
@@ -133,7 +133,7 @@ bytedcli hive get [guid] [options]
 
 **Options:**
 
-- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: "cn")
+- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: follows `--site`, see [Default region](#default-region))
 
 **Examples:**
 
@@ -168,12 +168,12 @@ bytedcli hive ddl [database] [table] [options]
 
 **Options:**
 
-- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: "cn")
+- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: follows `--site`, see [Default region](#default-region))
 
 **Examples:**
 
 ```bash
-# Get DDL for a table in CN region
+# Get DDL for a table in the --site default region (cn on the default site)
 bytedcli hive ddl my_database my_table
 
 # Get DDL for a table in SG region
@@ -202,12 +202,12 @@ bytedcli hive rows [database] [table] [options]
 
 **Options:**
 
-- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: "cn")
+- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: follows `--site`, see [Default region](#default-region))
 
 **Examples:**
 
 ```bash
-# Get partition row counts for a table in CN region
+# Get partition row counts for a table in the --site default region (cn on the default site)
 bytedcli hive rows my_database my_table
 
 # Get partition row counts for a table in SG region
@@ -240,7 +240,7 @@ bytedcli hive preview [database] [table] [options]
 
 - `--database <db>` - Database name
 - `--table <tbl>` - Table name
-- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: "cn")
+- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: follows `--site`, see [Default region](#default-region))
 - `--cluster <cluster>` - Hive cluster (default: "default")
 - `--limit <number>` - Number of rows to preview (default: 10, max: 100)
 - `--fresh` - Force fresh preview query without cache
@@ -276,7 +276,7 @@ bytedcli hive lineage [guid] [options]
 
 **Options:**
 
-- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: "cn")
+- `-r, --region <region>` - Region (built-in: cn, sg, gcp, va, mycis, sglark, jplark, uspipo, mybd, us-ttp, eu-ttp2, eu-compliance2, eu-ttp) (default: follows `--site`, see [Default region](#default-region))
 - `-d, --depth <depth>` - Lineage depth (default: 3)
 
 **Examples:**
@@ -320,7 +320,7 @@ bytedcli hive table update [options]
 - `--ttl <days>` - TTL days
 - `--ttl-column <col>` - TTL partition column, used together with `--ttl-pattern`
 - `--ttl-pattern <pattern>` - TTL partition pattern, used together with `--ttl-column`
-- `-r, --region <region>` - Region (default: `cn`)
+- `-r, --region <region>` - Region (default: follows `--site`, see [Default region](#default-region))
 
 **Examples:**
 
@@ -366,7 +366,7 @@ bytedcli hive project list [options]
 **Options:**
 
 - `--keyword <keyword>` - Filter projects by name keyword
-- `-r, --region <region>` - Region (default: `cn`)
+- `-r, --region <region>` - Region (default: follows `--site`, see [Default region](#default-region))
 
 **Examples:**
 
@@ -422,7 +422,7 @@ bytedcli hive project list --region mycis --keyword demo
 | ---------------- | -------------------- | --- | -------------------------------- |
 | `cn`             | china                | 0   | data.bytedance.net               |
 | `sg`             | singapore, row       | 6   | dataleap-sg.tiktok-row.net       |
-| `gcp`            | eu, texas            | 31  | dataleap-gp-ttp-eu.tiktok-eu.net |
+| `gcp`            | eu, texas            | 5   | dataleap.tiktok-eu.net           |
 | `va`             | us-east, maliva      | 1   | dataleap-va.tiktok-row.net       |
 | `mycis`          |                      | 41  | dataleap-mycis.example.net       |
 | `mybd`           |                      | 11  | dataleap-mybd.example.net        |
@@ -431,16 +431,43 @@ bytedcli hive project list --region mycis --keyword demo
 | `eu-compliance2` | eucompliance2, eu-c2 | 31  | dataleap-gp-ttp-eu.tiktok-eu.net |
 | `eu-ttp`         | euttp, eu-ie         | 47  | dataleap-ttp-eu-ie.tiktok-eu.net |
 
-For `gcp` and `us-ttp`, the CLI also configures a fallback `limitUrl` and
-transparently retries the request against it if the primary host is
-unreachable from the current network. No extra flag is needed.
+For `us-ttp`, the CLI calls `dataleap-bdee.tiktok-us.net` first and falls back
+to the primary host `dataleap-tx.tiktok-usts.net` when bdee is unreachable or
+answers 404 or a retryable status; a 403 is returned as is. No extra flag is
+needed.
 
-`eu-ttp2`, `eu-compliance2`, and `eu-ttp` route through TTP-style gateways
+`us-ttp`, `gcp`, `eu-ttp2`, `eu-compliance2`, and `eu-ttp` route through TTP-style gateways
 that use a Dataleap-issued JWT (`x-dataleap-jwt-token`) instead of the
 bytecloud `x-jwt-token`. The CLI handles this swap automatically; the only
 prerequisite is the same bytecloud SSO session used by the other regions.
-Note that `eu-compliance2` shares its host with `gcp`'s primary URL but
-points at a different Hive cluster (cid=31, vregion=`eu-compliance2`).
+Note that `gcp` (US-EastRed, cid=5) and `eu-compliance2` (IE2, cid=31) are
+different Hive clusters on different hosts; do not reuse one region's GUIDs
+or `--region` value for the other.
+
+### Default region
+
+When `--region` is omitted, `hive` commands use the region mapped from the
+global `--site` (or `BYTEDCLI_CLOUD_SITE`). An explicit `--region` / `-r`
+always wins.
+
+| `--site`                               | Default `--region` |
+| -------------------------------------- | ------------------ |
+| `cn` (default), `boe`                  | `cn`               |
+| `i18n-tt`                              | `sg`               |
+| `i18n`                                 | `va`               |
+| `i18n-bd`                              | `mycis`            |
+| `us-ttp`, `us-ttp-bdee`, `us-ttp-usts` | `us-ttp`           |
+| `eu-ttp`                               | `gcp`              |
+
+`boe` has no Hive deployment and maps to `cn`. For any other region (for
+example `eu-ttp2`, `eu-compliance2`, or `sglark`), pass `--region` explicitly.
+
+On the `us-ttp` region, the gateway rejects `hive search` with HTTP 403 (the
+request's `filterMode` field is not tagged); this is not a permission problem.
+Find tables with `bytedcli --site us-ttp coral search --query <name>`, then use
+`hive detail` / `ddl` / `rows`, which work on `us-ttp` for an existing Hive
+table. When no Hive table matches (without `--type`), or for `--type DorisTable`
+without `--namespace`, `hive detail` falls back to search and gets the same 403.
 
 ## Qualified Name Format
 

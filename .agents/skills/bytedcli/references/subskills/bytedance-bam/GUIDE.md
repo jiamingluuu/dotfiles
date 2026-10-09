@@ -1,6 +1,6 @@
 ---
 name: bytedance-bam
-description: 'BAM API 管理平台官方 skill，提供 API 接口元数据查询、管理、IDL 组件打包、IDL 检测修复等能力。当用户请求"API 查询"、"API 管理"、"接口元数据"、"接口查询"、"方法查询"、"IDL 查询"、"IDL 组件打包"、"IDL 版本更新"、"IDL 检查"、"IDL 同步"等时使用。'
+description: 'BAM API 管理平台官方 skill，提供 API 接口元数据查询/管理、IDL 组件打包/检测修复等。当用户请求"API 查询/管理"、"接口元数据"、"接口/方法查询"、"IDL 查询/检测/同步"、"IDL 组件打包"、"IDL 版本更新"等时使用。'
 ---
 
 # bytedcli BAM

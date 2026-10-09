@@ -1,6 +1,6 @@
 ---
 name: bytedance-argos
-description: "Argos observability fallback and Agent orchestration via bytedcli. Prefer bytedance-log for log search, LogID, pod/instance/Footprint, and log analysis; prefer bytedance-apm for metrics, QPS/SLA, CPU/MEM, dependencies, topology, Redis, and APM analysis. Use this skill when those dedicated skills cannot close the investigation, when the task needs Argos/SRE Agent multi-tool reasoning, alarm RCA or alarm-rule diagnosis and optimization, dashboard patrol or server-provided dashboard operations, when full/AI trace retrieval is specifically needed, when an AI agent session trajectory must be recovered from a PSM and session ID, when an already attempted Measurement/Metrics query needs metadata correction or a Metrics FE/Bosun/Argos query URL needs parsing, or when the user explicitly asks for Argos. Direct `argos tool` log/metrics calls are documented here but do not take priority over bytedance-log/bytedance-apm."
+description: "Use bytedcli Argos when dedicated skills cannot close an investigation, or directly for full/AI traces, PSM+session ID AI agent trajectories, existing Measurement/Metrics query metadata correction, Metrics FE/Bosun/Argos query URL parsing, SRE Agent multi-tool reasoning, alarm RCA/rule diagnosis/optimization, dashboard patrol/server-provided dashboard operations, or explicit Argos requests. Ordinary logs/LogID/pod/Footprint prefer bytedance-log; metrics/QPS/SLA/CPU/MEM/dependencies/topology/Redis prefer bytedance-apm, including direct argos tool calls."
 ---
 
 # bytedcli Argos Agent
@@ -243,6 +243,12 @@ bytedcli argos tool log.logid_prune \
   --log-id sample-log-id \
   --region China-North
 
+# 多区域 LogID 追踪（用 | 分隔并加引号，可选 PSM 过滤）
+bytedcli --site cn argos tool log.logid_prune \
+  --log-id sample-log-id \
+  --region 'China-North|China-North6' \
+  --psm-list example.service
+
 # 错误日志聚合；start/end 为 Unix 秒
 bytedcli argos tool log.error_log \
   --psm example.service \
@@ -260,6 +266,8 @@ bytedcli argos tool log.local_file \
 
 注意：
 
+- **多区域 LogID 查询**：`log.logid_prune` 的 `--region` 支持用 `|` 分隔多个区域，例如 `--region 'China-North|China-North6'`。整个值必须加引号；不要用逗号或重复 `--region`，重复选项只保留最后一个值。选择覆盖目标区域的 `--site`，跨站点时分别查询。
+- 该写法是 `log.logid_prune` 的工具约定，不要直接套用到 `log.search.keywords_stream`、`log.error_log` 或 `apm argos log aggregate`；这些命令需要多区域结果时按区域分别执行。普通多区域 LogID 查询仍优先使用 `log get-logid-log --vregion 'China-North|China-North6'` 的默认模式，适用条件见 Log skill。
 - `--xxx` 结构化参数模式会先经过对应 tool handler：补默认 region、默认值和时间窗，再调用后端。
 - 日志与 metrics 的 `--start` / `--end`、`--start-time` / `--end-time` 接受 RFC3339、Unix 秒/毫秒、`now`、`1h ago`；handler 会转换成 tool schema 要求的格式。
 - `log.search.keywords_stream` 默认持续请求后端 cursor，合并每页 `logs`，直到 `finished=true`、达到 `--max-pages` / `--max-results`，或检测到缺失/重复 cursor。

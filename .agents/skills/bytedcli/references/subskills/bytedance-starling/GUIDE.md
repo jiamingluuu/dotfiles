@@ -1,6 +1,6 @@
 ---
 name: bytedance-starling
-description: "Use bytedcli Starling to manage Starling i18n businesses, projects, workflows, members, imports, namespaces, tasks, target texts, releases, doc projects, doc tasks, and workflows through shortcuts and the API runner. Trigger when tasks mention Starling, i18n, localization, +list, +create, +info, prompt key, translation key, namespace, release workflow, doc project, doc task, workflow, api-runner, search docs, search knowledge, or Starling AK/SK configuration."
+description: "Use bytedcli Starling i18n/localization for businesses/projects/workflows/members/imports, namespaces/tasks/target texts/releases, doc projects/tasks, doc/knowledge search and AK/SK configuration. Matches prompt/translation keys, +list/+create/+info shortcuts and api-runner."
 ---
 
 # bytedcli Starling

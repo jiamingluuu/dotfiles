@@ -1,6 +1,11 @@
 # Kani OpenAPI
 
-Kani OpenAPI 这组命令面向“先查再申请”的使用路径。当前命令面以只读查询为主，唯一保留的写操作是 `workflow create`。
+Kani OpenAPI 这组命令面向“先理解对象，再预览申请，再分别处理申请人与审批人动作”的使用路径。当前命令面已经覆盖：
+
+- 对象理解：`resource get`、`permission get`
+- 申请预览 / 提交：`workflow create`
+- 申请人查询 / 撤回：`workflow get`、`workflow list --role applicant`、`workflow cancel`
+- 审批人查询 / 决策：`workflow get`、`workflow list --role reviewer`、`workflow approve`、`workflow reject`
 
 ## 通用约定
 
@@ -103,8 +108,23 @@ bytedcli kani openapi authz path \
   --object-key demo-resource \
   --action-key read
 
-# 5) 最后用 workflow create 发起申请
+# 5) 先用 workflow create --dry-run 预览审批链
+bytedcli kani openapi workflow create --body-file ./workflow-create-resource.json --dry-run
+
+# 6) 确认 work order / approver / nodes 后，再真正提交
 bytedcli kani openapi workflow create --body-file ./workflow-create-resource.json
+
+# 7a) 申请人查看自己提交过的 workflow，或继续跟进某条申请
+bytedcli kani openapi workflow get --workflow-id wf_demo --namespace kani_demo --applicant alice
+bytedcli kani openapi workflow list --role applicant --status finished --namespace kani_demo --applicant alice
+
+# 7b) 审批人处理前，先用 workflow get / workflow list 补齐上下文
+bytedcli kani openapi workflow get --workflow-id wf_demo --namespace kani_demo --applicant alice
+bytedcli kani openapi workflow list --role reviewer --status finished --namespace kani_demo
+
+# 8) 申请人需要撤回时用 cancel；审批人需要决策时用 approve / reject
+bytedcli kani openapi workflow cancel --workorder-id wo_demo --comment "需求变更，撤回本次申请"
+bytedcli kani openapi workflow approve --workorder-id wo_demo --comment "审批通过，允许上线使用"
 ```
 
 ## 模块路由
@@ -117,7 +137,7 @@ bytedcli kani openapi workflow create --body-file ./workflow-create-resource.jso
 | namespace | 查 namespace 详情，枚举 namespace 下 role/resource/group | [namespace.md](kani-openapi/namespace.md) |
 | role | 查单个 role，或查 member 与 role 的关联/失效关系 | [role.md](kani-openapi/role.md) |
 | group | 查单个 group | [group.md](kani-openapi/group.md) |
-| workflow | 查/创建 workflow | [workflow.md](kani-openapi/workflow.md) |
+| workflow | 预览/创建 workflow，查询 work order，并执行 approve/reject/cancel | [workflow.md](kani-openapi/workflow.md) |
 | write-log | 查写操作审计日志 | [write-log.md](kani-openapi/write-log.md) |
 
 ## 保留在总览中的命令

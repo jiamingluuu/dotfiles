@@ -1,6 +1,6 @@
 ---
 name: bytedance-cloud-docs
-description: "Provides two parallel capabilities: recall ByteCloud product and component documentation from natural-language questions, returning relevant article links, recall reasons, and Markdown content; search and fetch Cloud Docs via bytedcli using document IDs, keywords, business IDs, and API document filters. Use for Cloud Docs (字节云文档), document search, document retrieval, or natural-language ByteCloud product and component knowledge questions about architecture, principles, capabilities, usage, limitations, or troubleshooting, even when users do not explicitly mention documentation."
+description: "Use bytedcli Cloud Docs/字节云文档 to search/fetch by document ID, keywords, business ID or API-document filters; recall ByteCloud product/component articles with links, reasons and Markdown. Also use for natural-language ByteCloud architecture, principles, capabilities, usage, limitations or troubleshooting questions, even without explicit documentation intent."
 ---
 
 # bytedcli Cloud Docs

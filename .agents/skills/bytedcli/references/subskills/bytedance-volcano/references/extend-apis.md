@@ -50,6 +50,7 @@ ve metrics ListWorkspace --version 2024-06-29 \
 | Service          | Version      | Endpoint                             | Region        | Method   | Action                                                                                                           |
 | ---------------- | ------------ | ------------------------------------ | ------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
 | `account_verify` | `2018-01-01` | `open.volcengineapi.com`             | profile 默认  | POST     | `GetVerifyInfo`                                                                                                  |
+| `agentkit`       | `2025-10-30` | `open.volcengineapi.com`             | profile 默认  | POST     | `ListRuntimes`、`GetRuntime`（只读，用 `--query` 白名单投影，见 [账单](billing.md)）                             |
 | `cdn`            | `2021-03-01` | `cdn.volcengineapi.com`              | `cn-north-1`  | POST     | `DescribeOriginTopStatisticalData`                                                                               |
 | `cp`             | `2023-05-01` | `open.volcengineapi.com`             | profile 默认  | POST     | `ListPipelineRunStagesInner`                                                                                     |
 | `dcdn`           | `2021-04-01` | `open.volcengineapi.com`             | `cn-north-1`  | POST     | `DescribeRealtimeData`、`DescribeOriginRealtimeData`、`DescribeTopIPs`、`DescribeTopReferers`、`DescribeTopUrls` |

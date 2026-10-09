@@ -3,10 +3,10 @@ name: bytedance-volcano
 description: >-
   使用火山引擎 CLI（ve）操作 ECS、VPC、CLB、ALB、RDS、Redis、CR、DBW（Database
   Workbench）、VKE、Kubernetes Deployment/Pod/Service/CRD 与 Pod logs、veFaaS 等资源，
-  以及 Resource Center 跨产品资源发现与统计。
+  以及 Resource Center 跨产品资源发现与统计、费用中心账单按自定义时间范围（含当天）只读下钻与对账。
   ve 已支持的 Action 全部使用 ve；火山方舟 Ark foundation models/inference endpoints/API keys、
   日志服务 TLS、对象存储 TOS、CtxSearch 或明确缺少安全等价能力时使用 bytedcli volcano。
-  用户提到火山引擎、Volcengine、ve 命令、登录、云资源操作或 ve 报错时使用。
+  用户提到火山引擎、Volcengine、ve 命令、登录、云资源操作、火山账号账单或费用、ve 报错时使用。
 license: MIT
 metadata:
   openclaw:
@@ -70,15 +70,17 @@ metadata:
 
 ## 入口选择
 
-| 场景                                                                        | 默认入口                         | 原因                                                           |
-| --------------------------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------- |
-| ECS、VPC、CLB、ALB、RDS、Redis、IAM、KMS、DBW、VKE、veFaaS 等已收录 OpenAPI | `ve`                             | ve 已支持的 Action 全部优先使用                                |
-| 火山方舟 Ark 模型、推理接入点、API Key                                      | `bytedcli volcano ark ...`       | `ve` 未覆盖当前所需控制台能力                                  |
-| TLS project/topic/index/log/trace                                           | `bytedcli volcano tls ...`       | 当前 `ve` 没有 TLS 命令                                        |
-| TOS bucket/object 查询与下载                                                | `bytedcli volcano tos ...`       | 当前 `ve` 没有 TOS 命令，bytedcli 可用 Babi Session 换临时凭证 |
-| CtxSearch scene/API Key                                                     | `bytedcli volcano ctxsearch ...` | ve 未收录 CtxSearch metadata 与环境路由语义                    |
-| Resource Center 服务状态、类型目录、资源搜索与统计                          | `ve resourcecenter ...`          | 四个只读 Action 均已收录，详见产品说明                         |
-| DBW 本地 SQL 文件、VKE Secret 默认脱敏、VKE TLS 离线日志                    | 对应 bytedcli fallback           | ve 没有文件参数、默认脱敏或跨服务编排的安全等价能力            |
+| 场景                                                                        | 默认入口                         | 原因                                                                                                        |
+| --------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| ECS、VPC、CLB、ALB、RDS、Redis、IAM、KMS、DBW、VKE、veFaaS 等已收录 OpenAPI | `ve`                             | ve 已支持的 Action 全部优先使用                                                                             |
+| 火山方舟 Ark 模型、推理接入点、API Key                                      | `bytedcli volcano ark ...`       | `ve` 未覆盖当前所需控制台能力                                                                               |
+| TLS project/topic/index/log/trace                                           | `bytedcli volcano tls ...`       | 当前 `ve` 没有 TLS 命令                                                                                     |
+| TOS bucket/object 查询与下载                                                | `bytedcli volcano tos ...`       | 当前 `ve` 没有 TOS 命令，bytedcli 可用 Babi Session 换临时凭证                                              |
+| CtxSearch scene/API Key                                                     | `bytedcli volcano ctxsearch ...` | ve 未收录 CtxSearch metadata 与环境路由语义                                                                 |
+| Resource Center 服务状态、类型目录、资源搜索与统计                          | `ve resourcecenter ...`          | 四个只读 Action 均已收录，详见产品说明                                                                      |
+| 火山账号自身账单：自定义时间范围（含当天）的费用下钻与对账                  | `scripts/billing_drilldown.py`   | 只读调用 `ve billing`；分页、跨账期拼接、Decimal 对账与截至时间需要编排，详见 [账单](references/billing.md) |
+| 内部成本中心、服务树或团队成本、预算与成本异动归因                          | `bytedcli babi ...`              | BABI 内部成本口径，不是火山账号自身账单                                                                     |
+| DBW 本地 SQL 文件、VKE Secret 默认脱敏、VKE TLS 离线日志                    | 对应 bytedcli fallback           | ve 没有文件参数、默认脱敏或跨服务编排的安全等价能力                                                         |
 
 不要因为 bytedcli 仍保留其他 Volcano 命令就优先使用它们；ve 已支持的 Action 一律从 `ve` 开始，只有 reference 明确标注无安全等价能力时才 fallback。
 
@@ -418,12 +420,13 @@ TLS trace 是在 `SearchLogs` 上按 OpenTelemetry 字段封装的视图，不�
 
 ### TOS
 
-TOS bucket/object 查询、历史版本列举与指定版本下载使用 bytedcli，详见 [TOS](references/volcano-tos.md)：
+TOS bucket/object 查询、历史版本列举、指定版本元信息查询与下载使用 bytedcli，详见 [TOS](references/volcano-tos.md)：
 
 ```bash
 bytedcli volcano tos bucket list --volc-account-id <account-id> --region cn-beijing
 bytedcli volcano tos object list --bucket <bucket-name> --prefix demo/
 bytedcli volcano tos object get --bucket <bucket-name> --key <object-key>
+bytedcli volcano tos object get --bucket demo-bucket --key releases/demo.zip --version-id <version-id>
 bytedcli volcano tos version list --bucket demo-bucket --prefix releases/ --limit 50
 bytedcli volcano tos object download --bucket <bucket-name> --key <object-key> --output <path>
 bytedcli volcano tos object download --bucket demo-bucket --key releases/demo.zip --version-id <version-id> --output ./demo.previous.zip
@@ -456,6 +459,7 @@ bytedcli volcano ctxsearch api-key list --env qa
 - RDS：[references/rds.md](references/rds.md)
 - DBW 数据库、表与 SQL：[references/volcano-dbw.md](references/volcano-dbw.md)
 - Resource Center 跨产品资源发现与统计：[references/volcano-resource-center.md](references/volcano-resource-center.md)
+- 费用中心账单下钻与对账（只读，自定义时间范围）：[references/billing.md](references/billing.md)
 - TLS 全量命令参考（312 操作 / 26 组）：[references/volcano-tls.md](references/volcano-tls.md)
 - 消息队列：[references/mq.md](references/mq.md)
 - 存储：[references/storage.md](references/storage.md)

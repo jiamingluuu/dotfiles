@@ -1,6 +1,6 @@
 ---
 name: bytedance-slardar
-description: "Use bytedcli for Slardar tooling across Web, App, OS, PC / Media SDK, and Perfsee Lab. Trigger when tasks mention Slardar alarm pages, Web/Hybrid Query Assistant, Web dashboard or kanban pages, JS error triage, PC detail dashboards, PC native-crash issue pages, logQuery_v2 pages, Media SDK reporter logs, Perfsee project/lab/snapshot/report URLs, Slardar App issue links, app crash/anr/native/app/start trend metrics, native stack logs, retrace, Android .so BuildID/crash_lib_uuid/native symbol URL, Slardar App log file search/download/decrypt (#/track/logSearch), Slardar OS issue links, /node/os_detail pages, system ANR/native stacks, or symbolizing Slardar App/OS native stack frames."
+description: "Use bytedcli Slardar Web/App/OS/PC/Media SDK and Perfsee Lab for alarm pages, Web/Hybrid Query Assistant, dashboards/kanban, JS errors, PC detail/native-crash/logQuery_v2, reporter logs, Perfsee project/lab/snapshot/report URLs, App/OS issue links, crash/ANR/native/app/start trends, stack logs/retrace/symbolization, Android .so BuildID/crash_lib_uuid/symbol URLs, App log search/download/decrypt (#/track/logSearch), /node/os_detail and system ANR/native stacks."
 ---
 
 # bytedcli Slardar

@@ -1,6 +1,6 @@
 ---
 name: bytedance-iam
-description: "Inspect IAM resource owners, RBAC roles, effective permissions, authorization history, policy decisions, permission applications, bindings, policy exceptions, employee/user profiles, and service accounts through bytedcli. Invoke whenever tasks mention IAM、鉴权、权限检查、授权历史、角色申请、授权、SCP、策略例外、owner、employee、service account、权限工单, or another component returns an IAM permission interception."
+description: "Use bytedcli IAM for resource owners, RBAC roles/effective permissions, authorization history, policy decisions/SCP/exceptions, applications/tickets/bindings, employee/user profiles and service accounts. Invoke for IAM、鉴权/权限检查、角色申请/授权 or another component's IAM interception."
 ---
 
 # IAM

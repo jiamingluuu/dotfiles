@@ -44,6 +44,7 @@ NPM_CONFIG_REGISTRY=http://bnpm.byted.org npx -y @bytedance-dev/bytedcli@latest 
 - 文件 Blame（行级归因查询）
 - 仓库成员权限盘点（实名用户、用户组、直接/继承来源与到期统计）
 - 仓库自身权限申请，以及依赖权限检查与批量申请
+- Codebase 无 dedicated 命令的端点（如 ManagedAgent 系列）经 `codebase api` 原始 REST 逃生舱自助调用
 
 ## 前置条件
 
@@ -57,6 +58,15 @@ NPM_CONFIG_REGISTRY=http://bnpm.byted.org npx -y @bytedance-dev/bytedcli@latest 
 ```bash
 # 仓库
 bytedcli codebase repo get "example-org/example-repo"
+bytedcli codebase repo compare -R "example-org/example-repo" --head feature/demo
+bytedcli codebase repo compare -R "example-org/example-repo" --base v1.0.0 --head v1.1.0 --straight
+bytedcli codebase repo app search -R "example-org/example-repo" --query "bot"
+bytedcli codebase repo app get -R "example-org/example-repo" --app-id 707116058869522
+# 先预览完整 payload；确认权限与 webhook 事件并获授权后，再以相同参数追加 --yes。
+bytedcli codebase repo app install -R "example-org/example-repo" --app-id 707116058869522
+bytedcli codebase repo app install -R "example-org/example-repo" --app-id 707116058869522 --yes
+bytedcli codebase repo app uninstall -R "example-org/example-repo" --app-id 707116058869522 --yes
+bytedcli codebase repo app list -R "example-org/example-repo"
 bytedcli codebase namespace list # 只列出可用 namespace；按名称查找用 search
 bytedcli codebase namespace search --query "example" # search 必须带 query
 bytedcli codebase repo create --namespace example-org --name example-repo --description "Demo repo" --search-bytetree "Example Team"
@@ -72,6 +82,9 @@ bytedcli codebase mr comment list 821 -R "example-org/example-repo"
 bytedcli codebase mr files 821 -R "example-org/example-repo"
 bytedcli codebase mr diff 821 -R "example-org/example-repo" --file "path/to/file.ts"
 bytedcli codebase mr file-review get --mr 821 -R "example-org/example-repo"
+bytedcli codebase mr file-review list --mr 821 -R "example-org/example-repo"
+bytedcli codebase mr file-review get --mr 821 -R "example-org/example-repo" --path "path/to/file.ts"
+bytedcli codebase mr file-review unview --mr 821 -R "example-org/example-repo" --path "path/to/file.ts"
 # 先预览完整 payload；用户确认目标与 payload 后，再以相同参数追加 --yes。
 bytedcli codebase mr file-review update --mr 821 -R "example-org/example-repo" --state viewed --file path/to/file.ts
 bytedcli codebase mr file-review update --mr 821 -R "example-org/example-repo" --state viewed --file path/to/file.ts --yes
@@ -100,6 +113,12 @@ bytedcli codebase snippet delete --id <snippet_id> --yes
 bytedcli codebase ssh-key list
 bytedcli codebase ssh-key create --title "codex-mac" --key-file ~/.ssh/id_ed25519.pub
 bytedcli codebase ssh-key delete --id <key_id> --yes
+
+# 用户档案（省略参数或 @me 查当前登录用户；纯数字按用户 id 查，否则按用户名）
+bytedcli codebase user get
+bytedcli codebase user get demo-user
+bytedcli codebase user get 1234567 --stats   # 附带近 365 天贡献统计；要自定义时间窗用 codebase user-statistics --days <n>
+bytedcli --json codebase user get @me
 
 # 仓库成员权限 / 分支保护
 bytedcli codebase repo member get -R "example-org/example-repo"   # 当前用户 access level + 能否 push
@@ -364,8 +383,10 @@ bytedcli codebase checks operate -R "example-org/example-repo" --check-run-id <i
 - `codebase mr get --work-items` 会额外调用一次关联工作项接口，JSON 在 `data.work_items` 返回最多 100 条关联项，并用 `total_count` / `truncated` 明示是否还有更多结果；默认不传时不会发起这次附加请求。
 - `mr list` 默认 open；`issue list` 默认未完成态
 - MR 外部链接（Links）：`mr create/update --link "Text=URL"` 挂结构化链接（按第一个 `=` 拆分，Text 与 URL 均必填，缺任一报 `CODEBASE_INPUT_ERROR`；URL 可含 `=`/逗号；多条重复传 `--link`），`mr update --remove-link <url>` 按 URL 移除（URL 需与现有 link 完全一致，不存在时报错并列出现有 URL）。Links 走增量语义，与描述解耦，`mr update --body` 整份覆盖描述不会碰掉 Links，适合存放机器可读的归属元数据（如任务来源 + 会话 URL）。注意：当前 Codebase Web UI 不渲染 Links，读取只能走 `bytedcli --json codebase mr get`（`data.merge_request.Links`）或文本输出的 Links 行；给人看的信息仍要写进 MR 描述
-- `mr file-review get` 汇总当前 MR 版本的 viewed / unviewed 文件；`update --state viewed|unviewed` 只修改当前用户的个人查看状态，不影响代码、评论或审批。选择文件时重复传 `--file`，或使用 `--all` 处理当前版本全部变更文件。`update` 默认 dry-run 并输出完整 payload；Agent 必须先展示预览，只有用户确认同一组目标、状态和 payload 后，才用相同参数追加 `--yes` 提交。任一字段变化都要重新预览并确认。
+- `mr file-review get` 汇总当前 MR 版本的 viewed / unviewed 文件；`list` 逐个文件列出已读状态（含旧版本已读但已不在 diff 的 stale 文件）；`get --path <file>` 查单个文件的已读详情（viewed / 是否在当前 diff / stale）；`unview --path <file>` 直接把单个文件标为未读。`update --state viewed|unviewed` 只修改当前用户的个人查看状态，不影响代码、评论或审批。选择文件时重复传 `--file`，或使用 `--all` 处理当前版本全部变更文件。`update` 默认 dry-run 并输出完整 payload；Agent 必须先展示预览，只有用户确认同一组目标、状态和 payload 后，才用相同参数追加 `--yes` 提交。任一字段变化都要重新预览并确认。
 - `mr file-review` 的 `--mr` 支持 MR number、Codebase MR URL、BITS Code detail URL 或 source branch；省略时从当前 Git 分支推断。
+- `repo compare --head <branch|tag|sha> [--base <branch|tag|sha>] [--straight]` 对比任意两个 ref 的变更文件与增删行数；`--base` 省略时用仓库默认分支，默认从 merge base 起算（三点，同 git 三点 diff），`--straight` 改为直接快照对比（两点）；ref 解析顺序为完整 sha、branch、tag、服务端 revision，branch 与 tag 同名时 branch 优先（要精确指向 tag 用完整 sha），方向为 base -> head
+- `repo app list|search|get|install|uninstall` 管理仓库应用市场安装；输出按官方契约字段级 allowlist（永不打印 app secret、webhook URL/secret、邮箱、redirect URI）。`install`/`uninstall` 默认 dry-run 输出完整 payload，`--yes` 才提交；`install` 需用户认证（app 身份被服务端拒绝），提交前先核对预览里的 Permissions 与 Webhook.Events
 - MR selector 每个 `mr` 子命令都同时接受位置参数与 `--mr <selector>`（`mr get 821` 与 `mr get --mr 821` 等价），不用记哪个命令用哪种写法。两种写法同时给会报错而非静默择一。别名映射：`--mr` = 位置参数 selector；`mr comment resolve` / `unresolve` 的 `--thread-id` = `--id`（与 `comment reply --thread-id` 同名同义）。两个别名都在 `--help` 里以 `alias:` 标注，不引入任何新参数。
 - MR label：`mr update --add-labels / --remove-labels / --set-labels` 收的是 **label id**（不是名字），先用 `repo label list -R <repo>` 查 id；`--set-labels` 整体替换，不能与 add/remove 同用。label 写入走独立接口，`mr get` 会回读并在输出里带上 Labels，可直接自证是否生效。
 - 附件：`codebase upload --path <file>` 上传后返回 `file_id` / `file_url` / `markdown`；更常用的是 `--attach <path>`（可重复，`mr comment create` / `mr create` / `mr update` 均支持），一步完成上传并把 markdown 追加到正文末尾。`mr update --attach` 不传 `--body` 时是**追加**到现有描述，不会覆盖。markdown 形态由服务端按文件内容嗅探出的 MIME 决定（图片 `![]()`、视频 `![video]()`、其余 `[]()`），客户端无法指定。上传只支持用户身份，App Identity 会被拒绝。
@@ -457,6 +478,24 @@ bytedcli codebase permission apply -R <repo> --action reporter --reason “...�
 ## Markdown 多行换行（必读）
 
 bash/zsh 内联正文使用 ANSI-C 引号，例如 `--body $'第一行\n第二行'`；`--body "第一行\n第二行"` 不会由 shell 转为真实换行。推荐将 Markdown 保存为 UTF-8 文件并使用 `--body-file ./body.md`，避免依赖 shell 转义或历史内联文本兼容行为。
+
+## Raw API 逃生舱（`codebase api`）
+
+对齐官方 CLI `codebase api`（类似 `gh api`）：带当前凭据请求任何 Codebase 端点，响应 body 原样打印，覆盖 bytedcli 没有 dedicated 命令的接口（如 ManagedAgent 系列）。
+
+```bash
+bytedcli --json codebase api GetUser                                    # Action 简写（默认 POST /api/v2/?Action=）
+bytedcli --json codebase api GetRepository -f Path=example-org/example-repo -F Selector.Branch=true
+bytedcli codebase api /_/api/v1/namespaces -X GET                       # code.byted.org 绝对路径
+bytedcli --json codebase api "https://code.byted.org/api/v2/?Action=GetUser" -i
+cat body.json | bytedcli --json codebase api CreateManagedAgentSession --input -
+```
+
+- `-f key=value` 字符串字段、`-F key=value` typed 字段（true/false/null/数字/JSON 字面量，`@file` 读文件）；`a.b=v` 嵌套、`a[]=v` 数组追加；GET/HEAD 时字段进 query，其余方法进 JSON body；`--input <file|->` 与 `-f/-F` 互斥。
+- `-i` 包 `{Status, Headers, Body}`；非 2xx 仍打印 body 并以 exit 1 结束（脚本判 exit code）。
+- 请求只发往 code.byted.org / code-tx.byted.org / codebase-api.byted.org，其他 host 发送前即拒绝。
+- **无确认门**：mutation 端点立即生效；有 dedicated 命令时优先用 dedicated 命令。仓库 App 的 `ListApps`/`GetApp` 会返回真实 secret，必须走 `codebase repo app ...`（输出有 allowlist 防护），不要用 `api` 绕过或打印原始响应。
+- Subscribe* 等 SSE 端点暂不支持（会明确报错）；无限流场景请用官方 CLI。
 
 ## References
 

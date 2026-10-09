@@ -1,6 +1,6 @@
 ---
 name: bytedance-bmq
-description: "Operate BMQ (ByteCloud Message Queue / Kafka) via bytedcli: list/get topics, preview and submit topic creation orders, list clusters, list consumer groups, list mirrors. Use when tasks mention Kafka, message queues, BMQ topics, consumers, or data mirrors."
+description: "Use bytedcli BMQ/ByteCloud Message Queue/Kafka for topics, clusters, consumer groups and data mirrors, including previewing/submitting topic creation orders."
 ---
 
 # bytedcli BMQ

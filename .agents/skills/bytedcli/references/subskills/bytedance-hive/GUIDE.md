@@ -1,6 +1,6 @@
 ---
 name: bytedance-hive
-description: "Search, explore, create, and modify Hive/Clickhouse/Doris data assets via bytedcli, and use Hive Copilot for managed Spark Application diagnosis, comparison, tuning, skew/Shuffle/resource analysis, or CN Spark/Hive runtime knowledge Q&A. Use when tasks mention Hive, DataLeap, data catalog, table schema, column metadata, Dorado producer tasks, data lineage, creating/modifying Hive or Doris tables, or when the user gives Spark application_* and asks to diagnose failures/slowness or compare Spark jobs. Raw Spark UI evidence belongs to bytedance-megatron."
+description: "Use bytedcli Hive/DataLeap for Hive/ClickHouse/Doris asset search/exploration/creation/modification, catalog/schema/columns, Dorado producers and lineage. Hive Copilot handles managed Spark Application diagnosis (application_* failures/slowness), comparison/tuning, skew/Shuffle/resources and CN Spark/Hive runtime Q&A. Raw Spark UI evidence belongs to bytedance-megatron."
 ---
 
 # bytedcli Hive (DataLeap Data Catalog)
@@ -114,13 +114,16 @@ bytedcli --site cn hive copilot \
 
 | Region                   | Description      | Endpoint / notes                                                                        |
 | ------------------------ | ---------------- | --------------------------------------------------------------------------------------- |
-| `cn`                     | China (default)  | data.bytedance.net                                                                      |
+| `cn`                     | China            | data.bytedance.net                                                                      |
 | `sg`                     | Singapore ROW    | dataleap-sg.tiktok-row.net                                                              |
 | `gcp` / `eu`             | GCP / US-EastRed | API `dataleap.tiktok-eu.net` (cid=5); console `dataleap-gcp.tiktok-row.net`             |
 | `eu-compliance2` / `ie2` | IE2              | API `dataleap-gp-ttp-eu.tiktok-eu.net` (cid=31); console `dataleap-ie2…`; auth `eu-ttp` |
 | `va`                     | us-east, maliva  | dataleap-va.tiktok-row.net                                                              |
+| `us-ttp`                 | US-TTP (Texas)   | API `dataleap-bdee.tiktok-us.net` first, then `dataleap-tx.tiktok-usts.net` (cid=9)     |
 | `mycis`                  | MYCIS            | dataleap-mycis.example.net                                                              |
 | `mybd`                   | MYBD             | dataleap-mybd.example.net                                                               |
+
+When `--region` is omitted, the region follows the global `--site` (or `BYTEDCLI_CLOUD_SITE`): `cn`/`boe` → `cn`, `i18n-tt` → `sg`, `i18n` → `va`, `i18n-bd` → `mycis`, `us-ttp`/`us-ttp-bdee`/`us-ttp-usts` → `us-ttp`, `eu-ttp` → `gcp`. An explicit `--region` always wins; pass it whenever the target region is not the site default.
 
 ## Quick start
 
@@ -258,7 +261,8 @@ bytedcli hive create \
 - 只改普通 Hive 非分区列说明时，优先使用 `bytedcli coral hive table update --region cn --db-name example_db --table-name example_table --column-comments '{"sample_col":"字段说明"}'`。默认预览，获得写入授权后加 `--yes`，无需自行构造完整字段数组。该命令会保留 schema、补齐缺失的安全标签 CID，并在单次提交后回读 Coral 元数据；分区列说明暂不支持。原 `hive modify field` 同样会修正安全标签缺失/NULL 的 CID，显式数值 CID 保持不变。
 
 - Use `--json` for structured JSON output
-- Default region is `cn` if not specified
+- Without `--region`, the region follows `--site` (see [Supported Regions](#supported-regions)); on the default `cn` site it is `cn`
+- The `us-ttp` region (the default on `us-ttp` sites) rejects `hive search` with HTTP 403 "Please follow OG instructions and complete API schema tagging": the gateway has not tagged the request's `filterMode` field. It is not a permission problem. Find tables with `bytedcli --site us-ttp coral search --query <name>`, then use `hive detail` / `ddl` / `rows`, which work on `us-ttp` for an existing Hive table. When no Hive table matches (without `--type`), or for `--type DorisTable` without `--namespace`, `hive detail` falls back to search and gets the same 403.
 - Default asset type for search is `HiveDB`
 - `hive detail --type` is intentionally narrower than `hive search --type`; detail supports `HiveDB`, `HiveTable`, `ClickhouseDB`, `ClickhouseTable`, and `DorisTable`.
 - The `detail` and `get` commands show full schema including column names, types, comments, and producer Dorado task IDs when upstream lineage contains `DoradoTask`.
